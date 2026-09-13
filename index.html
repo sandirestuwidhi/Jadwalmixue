@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.7.25</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.7.38</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,133 +11,105 @@
     <style>
         body { 
             font-size: 11px; 
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); 
+            background: radial-gradient(circle at top left, #fee2e2 0%, #f1f5f9 50%, #e2e8f0 100%); 
             min-height: 100vh; 
         }
-        th, td { padding: 6px 10px !important; white-space: nowrap; text-align: center; }
+        th, td { padding: 8px 12px !important; white-space: nowrap; text-align: center; }
         td:first-child { text-align: left; }
         
-        /* Efek Liquid Glass / iOS Style */
+        /* Glassmorphism Modern */
         .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.07), 0 0 15px rgba(255, 255, 255, 0.5) inset;
+            border-radius: 24px;
         }
         .glass-header {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            box-shadow: 0 10px 20px -5px rgba(220, 38, 38, 0.3);
-            border-radius: 20px;
+            background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+            box-shadow: 0 15px 30px -5px rgba(220, 38, 38, 0.35);
+            border-radius: 24px;
         }
         input, select, textarea {
-            background: rgba(248, 250, 252, 0.8) !important;
-            border: 1px solid rgba(203, 213, 225, 0.8) !important;
-            border-radius: 12px !important;
-            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            border-radius: 14px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #dc2626 !important;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+            background: #ffffff !important;
         }
         button {
-            border-radius: 12px !important;
-            transition: all 0.2s ease;
+            border-radius: 14px !important;
+            transition: all 0.25s ease;
         }
         button:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
     </style>
 </head>
-<body class="text-gray-800 font-sans p-2.5 max-w-full min-h-screen flex flex-col justify-between">
+<body class="text-gray-800 font-sans p-3 max-w-full min-h-screen flex flex-col justify-between">
 
     <div>
         <!-- HEADER UTAMA -->
-        <div class="glass-header text-white text-center py-3.5 mb-3.5 relative overflow-hidden">
-            <div class="absolute -right-6 -top-6 w-20 h-20 bg-white/10 rounded-full blur-md"></div>
-            <h1 class="text-base font-black tracking-wider uppercase">JADWAL KERJA MIXUE SUKOREJO</h1>
-            <div class="flex items-center justify-center gap-1.5 mt-1">
+        <div class="glass-header text-white text-center py-4 mb-4 relative overflow-hidden">
+            <div class="absolute -right-8 -top-8 w-24 h-24 bg-white/20 rounded-full blur-xl"></div>
+            <div class="absolute -left-8 -bottom-8 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
+            <h1 class="text-base font-black tracking-wider uppercase relative z-10">JADWAL KERJA MIXUE SUKOREJO</h1>
+            <div class="flex items-center justify-center gap-1.5 mt-1.5 relative z-10">
                 <span id="dotServer" class="w-2.5 h-2.5 rounded-full bg-amber-300 inline-block animate-pulse"></span>
                 <span id="syncStatus" class="text-[10px] font-semibold text-red-100">Menghubungkan ke server...</span>
             </div>
-            <button id="btnLogout" onclick="logout()" class="hidden absolute right-3 top-3.5 bg-black/20 hover:bg-black/30 text-white px-3 py-1 rounded-xl text-[10px] font-bold backdrop-blur transition shadow-sm">Keluar</button>
+            <button id="btnLogout" onclick="logout()" class="hidden absolute right-3.5 top-4 bg-black/20 hover:bg-black/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold backdrop-blur transition shadow-sm z-10">Keluar</button>
         </div>
 
-        <!-- ================= HALAMAN LOGIN UNIVERSAL ================= -->
-        <div id="sectionLogin" class="max-w-sm mx-auto glass-card p-6 mt-8 border-t-4 border-red-600">
-            <div class="text-center mb-5">
-                <div class="w-14 h-14 bg-red-600 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-2 shadow-md">MS</div>
-                <h2 class="text-sm font-black text-gray-800 tracking-wide">MASUK APLIKASI</h2>
-                <p class="text-[10px] text-gray-500">Pilih akses masuk sesuai peranmu</p>
-            </div>
-            <div class="space-y-4">
-                <!-- Login Admin -->
-                <div class="bg-white/50 p-3 rounded-xl border border-gray-100">
-                    <label class="text-[10px] font-bold text-gray-700 block mb-1">Password Admin:</label>
-                    <div class="flex gap-1.5">
-                        <input type="password" id="passAdmin" class="w-full p-2 text-xs" placeholder="Password Admin">
-                        <button onclick="prosesLoginUniversal('admin')" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 text-xs shadow-sm">Masuk</button>
-                    </div>
-                </div>
-                <!-- Login Crew dengan Dropdown Nama -->
-                <div class="bg-white/50 p-3 rounded-xl border border-gray-100 space-y-2">
-                    <label class="text-[10px] font-bold text-gray-700 block">Login Crew:</label>
-                    <select id="loginSelectCrew" class="w-full p-2 text-xs font-semibold">
-                        <option value="">-- Pilih Nama Crew --</option>
-                    </select>
-                    <div class="flex gap-1.5">
-                        <input type="password" id="passCrew" class="w-full p-2 text-xs" placeholder="PIN (123456)">
-                        <button onclick="prosesLoginUniversal('crew')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 text-xs shadow-sm">Masuk</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= HALAMAN UTAMA APLIKASI ================= -->
-        <div id="sectionApp" class="hidden space-y-3.5">
+        <!-- ================= HALAMAN UTAMA ================= -->
+        <div class="space-y-4">
             
-            <!-- SUB TAB NAVIGASI -->
-            <div class="flex gap-1.5 glass-card p-1.5">
-                <button onclick="switchTab('beranda')" id="tabBtnBeranda" class="flex-1 py-2 rounded-xl text-xs font-bold bg-red-600 text-white shadow-sm transition">Beranda & Request</button>
-                <button onclick="switchTab('panel')" id="tabBtnPanel" class="flex-1 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition hidden">Pusat Panel (Admin)</button>
-                <button onclick="switchTab('rekap')" id="tabBtnRekap" class="flex-1 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition hidden">Rekapan Bulanan</button>
+            <!-- SUB TAB NAVIGASI (Hanya Muncul Jika Login) -->
+            <div id="containerSubTab" class="hidden flex gap-2 glass-card p-1.5">
+                <button onclick="switchTab('beranda')" id="tabBtnBeranda" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition">Beranda & Request</button>
+                <button onclick="switchTab('panel')" id="tabBtnPanel" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition hidden">Pusat Panel (Admin)</button>
+                <button onclick="switchTab('rekap')" id="tabBtnRekap" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition hidden">Rekapan Bulanan</button>
             </div>
 
-            <!-- TAB 1: BERANDA & REKUES / IZIN -->
-            <div id="tabBeranda" class="space-y-3.5">
+            <!-- TAB 1: BERANDA -->
+            <div id="tabBeranda" class="space-y-4">
                 
-                <!-- Info Shift Aktif / Sapaan Crew -->
-                <div id="panelShiftAktifCrew" class="glass-card p-4 border-l-4 border-red-600 hidden space-y-1.5">
+                <!-- Status Shift Kamu Hari Ini (Jika Crew Login) -->
+                <div id="panelShiftAktifCrew" class="glass-card p-4 border-l-4 border-red-600 hidden space-y-2">
                     <h3 class="text-xs font-black text-gray-800" id="salamCrewTitle">Status Shift Kamu Hari Ini</h3>
-                    <div id="boxInfoShiftHariIni" class="p-3 rounded-xl bg-white/80 border border-gray-200 text-xs font-semibold text-center shadow-inner">
+                    <div id="boxInfoShiftHariIni" class="p-3.5 rounded-xl bg-white/80 border border-gray-200 text-xs font-semibold text-center shadow-inner">
                         Memuat jadwal hari ini...
                     </div>
                 </div>
 
-                <!-- Info Periode Aktif (Khusus Admin) -->
-                <div id="panelPeriodeAdmin" class="glass-card p-4 border-l-4 border-red-600 flex justify-between items-center hidden">
+                <!-- Pilihan Periode Bulan & Tahun untuk Tabel -->
+                <div class="glass-card p-4 border-l-4 border-red-600 flex justify-between items-center">
                     <div>
-                        <h3 class="text-xs font-black text-gray-800" id="berandaTitlePeriode">Periode Aktif</h3>
-                        <span id="berandaInfoStatus" class="text-[10px] text-red-600 font-bold">Memeriksa status aktif...</span>
+                        <h3 class="text-xs font-black text-gray-800">Pilih Periode Bulan</h3>
+                        <span id="berandaInfoStatus" class="text-[10px] text-red-600 font-bold">Jadwal Mingguan Tersedia</span>
                     </div>
-                    <div class="flex gap-1.5">
-                        <select id="selectBulanBeranda" onchange="syncPeriodeBeranda()" class="p-1.5 text-xs font-semibold">
+                    <div class="flex gap-2">
+                        <select id="selectBulanBeranda" onchange="syncPeriodeBeranda()" class="p-2 text-xs font-semibold">
                             <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
                         </select>
-                        <select id="selectTahunBeranda" onchange="syncPeriodeBeranda()" class="p-1.5 text-xs font-semibold"></select>
+                        <select id="selectTahunBeranda" onchange="syncPeriodeBeranda()" class="p-2 text-xs font-semibold"></select>
                     </div>
                 </div>
 
-                <!-- KONTAINER TABEL BERANDA -->
+                <!-- TABEL JADWAL AKTIF -->
                 <div id="wrapperTabelBeranda" class="glass-card p-4 border-l-4 border-emerald-600">
-                    <div class="flex justify-between items-center mb-2.5">
+                    <div class="flex justify-between items-center mb-3">
                         <h3 class="text-xs font-black text-emerald-800">Jadwal Shift Mingguan</h3>
-                        <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 text-[10px] shadow-sm">Download Excel</button>
+                        <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 text-[10px] shadow-md shadow-emerald-500/20">Download Excel</button>
                     </div>
-                    <div id="weekTabsBeranda" class="flex flex-wrap gap-1.5 mb-3 border-b border-gray-200/60 pb-2.5"></div>
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white/90 shadow-sm">
+                    <div id="weekTabsBeranda" class="flex flex-wrap gap-1.5 mb-3.5 border-b border-gray-200/60 pb-3"></div>
+                    <div class="overflow-x-auto rounded-2xl border border-gray-200 bg-white/95 shadow-sm">
                         <table id="rekapTableBeranda" class="w-full text-left border-collapse text-[11px]">
                             <thead>
                                 <tr id="tableHeaderBeranda" class="bg-red-600 text-white">
@@ -149,22 +121,74 @@
                     </div>
                 </div>
 
-                <!-- FORM REQUEST & IZIN (Otomatis Sesuai Akun Login) -->
-                <div class="glass-card p-4 border-l-4 border-blue-600 space-y-3">
+                <!-- KOTAK LOGIN DIPINDAH KE BAWAH TABEL -->
+                <div id="sectionLogin" class="space-y-2">
+                    <div class="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-center py-2.5 px-3 rounded-2xl font-black text-[10px] tracking-wider uppercase shadow-lg shadow-red-500/20 animate-pulse">
+                        ⚠️ LOGIN UNTUK REKUES, IZIN, ATAU AKSES FITUR LAIN ⚠️
+                    </div>
+                    <div class="glass-card p-4 border-t-4 border-red-600 space-y-3.5">
+                        
+                        <!-- Tombol Pilihan Menu Login -->
+                        <div id="menuPilihanLogin" class="grid grid-cols-2 gap-2.5">
+                            <button onclick="bukaFormLogin('crew')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5">
+                                👤 Login Crew
+                            </button>
+                            <button onclick="bukaFormLogin('admin')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-xs shadow-md shadow-red-500/20 flex items-center justify-center gap-1.5">
+                                🛡️ Login Admin
+                            </button>
+                        </div>
+
+                        <!-- Form Input Crew (Hidden Default) -->
+                        <div id="formLoginCrew" class="hidden space-y-2.5 bg-white/70 p-3.5 rounded-2xl border border-blue-100 shadow-inner">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-black text-blue-900 uppercase tracking-wide">Form Login Crew</span>
+                                <button onclick="tutupFormLogin()" class="text-gray-400 hover:text-gray-700 text-xs font-bold px-2 py-0.5">✕ Batal</button>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-gray-700 block mb-1">Pilih Nama Crew:</label>
+                                <select id="loginSelectCrew" class="w-full p-2.5 text-xs font-semibold bg-white">
+                                    <option value="">-- Pilih Nama Crew --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-gray-700 block mb-1">PIN Crew:</label>
+                                <input type="password" id="passCrew" class="w-full p-2.5 text-xs bg-white" placeholder="PIN (123456)">
+                            </div>
+                            <button onclick="prosesLoginUniversal('crew')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 text-xs shadow-md shadow-blue-500/20">Masuk sebagai Crew</button>
+                        </div>
+
+                        <!-- Form Input Admin (Hidden Default) -->
+                        <div id="formLoginAdmin" class="hidden space-y-2.5 bg-white/70 p-3.5 rounded-2xl border border-red-100 shadow-inner">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-black text-red-900 uppercase tracking-wide">Form Login Admin</span>
+                                <button onclick="tutupFormLogin()" class="text-gray-400 hover:text-gray-700 text-xs font-bold px-2 py-0.5">✕ Batal</button>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-gray-700 block mb-1">Password Admin:</label>
+                                <input type="password" id="passAdmin" class="w-full p-2.5 text-xs bg-white" placeholder="Password Admin">
+                            </div>
+                            <button onclick="prosesLoginUniversal('admin')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 text-xs shadow-md shadow-red-500/20">Masuk sebagai Admin</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- FORM REQUEST & IZIN (Hanya Tampil Jika Login) -->
+                <div id="containerFormRequest" class="glass-card p-4 border-l-4 border-blue-600 space-y-3.5 hidden">
                     <h3 class="font-black text-xs text-blue-900" id="labelFormRequestTitle">Form Request & Izin Shift</h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                         <div id="wrapperInputCrewAdmin" class="hidden">
-                            <label class="text-[9px] text-gray-500 block font-bold mb-0.5">Pilih Nama Crew:</label>
-                            <select id="reqCrewAdmin" class="w-full p-2 bg-white" onchange="updateBackupDropdown()"><option value="">Pilih Nama Crew</option></select>
+                            <label class="text-[9px] text-gray-500 block font-bold mb-1">Pilih Nama Crew:</label>
+                            <select id="reqCrewAdmin" class="w-full p-2.5 bg-white" onchange="updateBackupDropdown()"><option value="">Pilih Nama Crew</option></select>
                         </div>
                         <div>
-                            <label class="text-[9px] text-gray-500 block font-bold mb-0.5">Pilih Tanggal Mulai:</label>
-                            <input type="date" id="reqDate" class="w-full p-2 bg-white">
+                            <label class="text-[9px] text-gray-500 block font-bold mb-1">Pilih Tanggal Mulai:</label>
+                            <input type="date" id="reqDate" class="w-full p-2.5 bg-white">
                         </div>
                         <div>
-                            <label class="text-[9px] text-gray-500 block font-bold mb-0.5">Pilih Jenis Request/Izin:</label>
-                            <select id="reqJenis" class="w-full p-2 bg-white font-semibold" onchange="toggleFormIzinDetail()">
+                            <label class="text-[9px] text-gray-500 block font-bold mb-1">Pilih Jenis Request/Izin:</label>
+                            <select id="reqJenis" class="w-full p-2.5 bg-white font-semibold" onchange="toggleFormIzinDetail()">
                                 <option value="Pagi">Request Shift: Pagi</option>
                                 <option value="Siang">Request Shift: Siang</option>
                                 <option value="Middle">Request Shift: Middle</option>
@@ -179,98 +203,99 @@
                     </div>
 
                     <!-- PENGATURAN TAMBAHAN KHUSUS IZIN -->
-                    <div id="wrapperFormIzin" class="hidden p-3 bg-white/70 border border-blue-200 rounded-xl space-y-2.5 text-xs shadow-inner">
+                    <div id="wrapperFormIzin" class="hidden p-3.5 bg-white/75 border border-blue-200 rounded-2xl space-y-3 text-xs shadow-inner">
                         <p class="font-black text-blue-800 text-[11px]">Pengaturan Durasi & Backup Shift</p>
-                        <div class="grid grid-cols-2 gap-2.5">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="text-[9px] text-gray-600 block font-bold">Durasi (Jumlah Hari):</label>
-                                <input type="number" id="izinDurasi" min="1" value="1" class="w-full p-2 bg-white">
+                                <label class="text-[9px] text-gray-600 block font-bold mb-1">Durasi (Jumlah Hari):</label>
+                                <input type="number" id="izinDurasi" min="1" value="1" class="w-full p-2.5 bg-white">
                             </div>
                             <div>
-                                <label class="text-[9px] text-gray-600 block font-bold">Crew Pengganti Lembur:</label>
-                                <select id="izinBackup" class="w-full p-2 bg-white font-semibold">
+                                <label class="text-[9px] text-gray-600 block font-bold mb-1">Crew Pengganti Lembur:</label>
+                                <select id="izinBackup" class="w-full p-2.5 bg-white font-semibold">
                                     <option value="-">Tanpa Backup</option>
                                 </select>
                             </div>
                         </div>
                         <div>
-                            <label class="text-[9px] text-gray-600 block font-bold">Keterangan / Alasan:</label>
-                            <input type="text" id="izinKeterangan" class="w-full p-2 bg-white" placeholder="Tuliskan keperluan izin di sini...">
+                            <label class="text-[9px] text-gray-600 block font-bold mb-1">Keterangan / Alasan:</label>
+                            <input type="text" id="izinKeterangan" class="w-full p-2.5 bg-white" placeholder="Tuliskan keperluan izin di sini...">
                         </div>
-                        <button onclick="kirimPesanWAAdmin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 text-xs shadow-sm flex items-center justify-center gap-1.5">
+                        <button onclick="kirimPesanWAAdmin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1.5">
                             Kirim Format Surat Izin ke WhatsApp (Grup/Kontak)
                         </button>
                     </div>
 
-                    <button onclick="kirimRequest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 text-xs shadow-sm">Kirim Request / Izin ke Sistem</button>
+                    <button onclick="kirimRequest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/20">Kirim Request / Izin ke Sistem</button>
                     
-                    <div id="notifBarRequest" class="hidden bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-xl text-[11px] font-semibold">
+                    <div id="notifBarRequest" class="hidden bg-amber-50 border border-amber-300 text-amber-900 p-3 rounded-2xl text-[11px] font-semibold">
                         Request Anda telah tercatat dan dikirim ke Admin.
                     </div>
                 </div>
 
-                <!-- PAPAN INFO / STATUS REQUEST (Dapat dilihat semua crew) -->
-                <div class="glass-card p-4 border-l-4 border-amber-500">
-                    <h3 class="font-black text-xs mb-2.5 text-amber-900">Papan Info: Status Hasil Request & Izin Semua Crew</h3>
-                    <div id="listInfoRequestContainer" class="space-y-2 max-h-36 overflow-y-auto pr-1">
+                <!-- PAPAN INFO / STATUS REQUEST (Hanya Tampil Jika Login) -->
+                <div id="containerPapanInfo" class="glass-card p-4 border-l-4 border-amber-500 hidden">
+                    <h3 class="font-black text-xs mb-3 text-amber-900">Papan Info: Status Hasil Request & Izin Semua Crew</h3>
+                    <div id="listInfoRequestContainer" class="space-y-2.5 max-h-40 overflow-y-auto pr-1">
                         <span class="text-gray-400 text-[10px]">Belum ada info request.</span>
                     </div>
                 </div>
 
-                <!-- HUBUNGI PENGEMBANG -->
-                <div class="glass-card p-4 border-l-4 border-emerald-600">
-                    <h3 class="font-black text-xs mb-2.5 text-emerald-900">Hubungi Admin</h3>
-                    <div class="space-y-2.5">
-                        <textarea id="waPesan" class="w-full p-2.5 text-xs bg-white" rows="2" placeholder="Tulis pesan atau kendala aplikasi di sini..."></textarea>
-                        <button onclick="kirimWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 text-xs shadow-sm">Kirim Pesan ke WhatsApp Admin</button>
+                <!-- HUBUNGI ADMIN (Hanya Tampil Jika Login) -->
+                <div id="containerHubungiWA" class="glass-card p-4 border-l-4 border-emerald-600 hidden">
+                    <h3 class="font-black text-xs mb-3 text-emerald-900">Hubungi Admin</h3>
+                    <div class="space-y-3">
+                        <textarea id="waPesan" class="w-full p-3 text-xs bg-white" rows="2" placeholder="Tulis pesan atau kendala aplikasi di sini..."></textarea>
+                        <button onclick="kirimWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 text-xs shadow-md shadow-emerald-500/20">Kirim Pesan ke WhatsApp Admin</button>
                     </div>
                 </div>
 
             </div>
 
             <!-- TAB 2: PUSAT PANEL (KHUSUS ADMIN) -->
-            <div id="tabPanel" class="hidden space-y-3.5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div id="tabPanel" class="hidden space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     
                     <!-- 1. Pilih Periode & Kontrol Tampil Minggu -->
                     <div class="glass-card p-4 border-l-4 border-red-600">
-                        <h3 class="font-black text-xs mb-2 text-gray-800">Atur Periode & Publikasi Minggu</h3>
-                        <div class="grid grid-cols-2 gap-2 mb-2.5">
-                            <select id="selectBulanPanel" onchange="syncPeriodePanel()" class="p-2 text-xs bg-white font-semibold">
+                        <h3 class="font-black text-xs mb-2.5 text-gray-800">Atur Periode & Publikasi Minggu</h3>
+                        <div class="grid grid-cols-2 gap-2.5 mb-3">
+                            <select id="selectBulanPanel" onchange="syncPeriodePanel()" class="p-2.5 text-xs bg-white font-semibold">
                                 <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
                             </select>
-                            <select id="selectTahunPanel" onchange="syncPeriodePanel()" class="p-2 text-xs bg-white font-semibold"></select>
+                            <select id="selectTahunPanel" onchange="syncPeriodePanel()" class="p-2.5 text-xs bg-white font-semibold"></select>
                         </div>
-                        <span id="labelPeriodePanel" class="text-[10px] font-black text-red-600 block mb-2">Periode: -</span>
+                        <span id="labelPeriodePanel" class="text-[10px] font-black text-red-600 block mb-2.5">Periode: -</span>
                         
-                        <div class="border-t border-gray-200/80 pt-2.5">
-                            <label class="text-[10px] font-bold text-gray-700 block mb-1.5">Centang Minggu yang Ditampilkan ke Crew:</label>
-                            <div id="adminWeekToggles" class="grid grid-cols-2 gap-1.5 text-[10px]"></div>
+                        <div class="border-t border-gray-200/80 pt-3">
+                            <label class="text-[10px] font-bold text-gray-700 block mb-2">Centang Minggu yang Ditampilkan ke Crew:</label>
+                            <div id="adminWeekToggles" class="grid grid-cols-2 gap-2 text-[10px]"></div>
                         </div>
                     </div>
 
                     <!-- 2. Kelola Crew -->
                     <div class="glass-card p-4 border-l-4 border-red-600">
                         <h3 class="font-black text-xs mb-2 text-gray-800">Kelola Crew</h3>
-                        <div class="flex gap-2 mb-2.5">
-                            <input type="text" id="newCrewName" class="w-full p-2 text-xs bg-white" placeholder="Nama Crew">
-                            <button onclick="tambahCrew()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 text-xs shadow-sm">Tambah</button>
+                        <p class="text-[9px] text-gray-500 mb-2.5">Hapus nama lama jika ingin mengganti dengan nama panjang.</p>
+                        <div class="flex gap-2.5 mb-3">
+                            <input type="text" id="newCrewName" class="w-full p-2.5 text-xs bg-white" placeholder="Nama Panjang Crew">
+                            <button onclick="tambahCrew()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 text-xs shadow-md shadow-red-500/20">Tambah</button>
                         </div>
-                        <div id="listCrewContainer" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-white/60 rounded-xl border border-gray-200"></div>
+                        <div id="listCrewContainer" class="flex flex-wrap gap-2 max-h-28 overflow-y-auto p-2.5 bg-white/70 rounded-2xl border border-gray-200"></div>
                     </div>
 
                 </div>
 
                 <!-- 3. FITUR IMPORT & TEMPLATE MASTER EXCEL -->
-                <div class="glass-card p-4 border-l-4 border-blue-600 space-y-2.5">
+                <div class="glass-card p-4 border-l-4 border-blue-600 space-y-3">
                     <h3 class="font-black text-xs text-blue-900">📂 Import / Upload Jadwal dari Excel</h3>
-                    <p class="text-[10px] text-gray-500">Unduh template master terlebih dahulu, isi jadwal di Excel, lalu upload kembali ke sini agar sistem langsung mengisi jadwal otomatis.</p>
+                    <p class="text-[10px] text-gray-500">Unduh template master terlebih dahulu, isi jadwal di Excel, lalu upload kembali ke sini.</p>
                     
-                    <div class="flex gap-2">
-                        <button onclick="downloadTemplateMaster()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 text-[10px] shadow-sm flex items-center justify-center gap-1">
+                    <div class="flex gap-2.5">
+                        <button onclick="downloadTemplateMaster()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 text-[10px] shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5">
                             📥 Download Template Master
                         </button>
-                        <label class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3 text-[10px] shadow-sm text-center cursor-pointer rounded-xl flex items-center justify-center gap-1">
+                        <label class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 text-[10px] shadow-md shadow-emerald-500/20 text-center cursor-pointer rounded-2xl flex items-center justify-center gap-1.5">
                             📤 Upload File Excel Jadwal
                             <input type="file" id="excelFileImport" accept=".xlsx, .xls, .csv" onchange="importJadwalExcel(event)" class="hidden">
                         </label>
@@ -279,30 +304,30 @@
 
                 <!-- Input Shift Massal Harian -->
                 <div class="glass-card p-4 border-l-4 border-red-600">
-                    <h3 class="font-black text-xs mb-2.5 text-gray-800">Input Shift Harian (Semua Crew Sekaligus)</h3>
-                    <div class="mb-2.5">
-                        <label class="text-[9px] text-gray-500 block font-bold mb-0.5">Pilih Tanggal:</label>
-                        <input type="date" id="shiftDateTarget" class="w-full p-2 text-xs bg-white" onchange="renderFormCrewHarian()">
+                    <h3 class="font-black text-xs mb-3 text-gray-800">Input Shift Harian (Semua Crew Sekaligus)</h3>
+                    <div class="mb-3">
+                        <label class="text-[9px] text-gray-500 block font-bold mb-1">Pilih Tanggal:</label>
+                        <input type="date" id="shiftDateTarget" class="w-full p-2.5 text-xs bg-white" onchange="renderFormCrewHarian()">
                     </div>
-                    <div id="formCrewHarianContainer" class="max-h-40 overflow-y-auto space-y-2 mb-3 border border-gray-200 p-2.5 rounded-xl bg-white/70"></div>
-                    <button onclick="simpanShiftHarianMasal()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 text-xs shadow-sm">Simpan Shift Semua Crew</button>
+                    <div id="formCrewHarianContainer" class="max-h-44 overflow-y-auto space-y-2.5 mb-3.5 border border-gray-200 p-3 rounded-2xl bg-white/75"></div>
+                    <button onclick="simpanShiftHarianMasal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 text-xs shadow-md shadow-emerald-500/20">Simpan Shift Semua Crew</button>
                 </div>
 
                 <!-- Panel Persetujuan Request & Izin Admin -->
                 <div class="glass-card p-4 border-l-4 border-gray-600">
-                    <h3 class="font-black text-xs mb-2.5 text-gray-700">Panel Persetujuan Request & Izin Shift</h3>
-                    <div id="listRequestContainerAdmin" class="space-y-2 max-h-40 overflow-y-auto mb-1"></div>
+                    <h3 class="font-black text-xs mb-3 text-gray-700">Panel Persetujuan Request & Izin Shift</h3>
+                    <div id="listRequestContainerAdmin" class="space-y-2.5 max-h-44 overflow-y-auto mb-1"></div>
                 </div>
             </div>
 
-            <!-- TAB 3: REKAPAN BULANAN (PERIODE 26 - 25) -->
-            <div id="tabRekap" class="hidden space-y-3.5">
+            <!-- TAB 3: REKAPAN BULANAN -->
+            <div id="tabRekap" class="hidden space-y-4">
                 <div class="glass-card p-4 border-l-4 border-indigo-600">
-                    <div class="flex justify-between items-center mb-2.5">
+                    <div class="flex justify-between items-center mb-3">
                         <h3 class="font-black text-xs text-indigo-900">Rekapan Kehadiran & Izin Bulanan (Periode 26 - 25)</h3>
-                        <button onclick="exportRekapExcel()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 text-[10px] shadow-sm">Download Rekap Excel</button>
+                        <button onclick="exportRekapExcel()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 text-[10px] shadow-md shadow-indigo-500/20">Download Rekap Excel</button>
                     </div>
-                    <div class="overflow-x-auto rounded-xl border border-indigo-100 bg-white/95 shadow-sm">
+                    <div class="overflow-x-auto rounded-2xl border border-indigo-100 bg-white/95 shadow-sm">
                         <table class="w-full text-left border-collapse text-[11px]">
                             <thead>
                                 <tr class="bg-indigo-600 text-white">
@@ -323,8 +348,8 @@
     </div>
 
     <!-- FOOTER COPYRIGHT -->
-    <footer class="text-center text-[10px] text-gray-500 mt-6 border-t border-gray-300/60 pt-3">
-        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.7.25
+    <footer class="text-center text-[10px] text-gray-500 mt-8 border-t border-gray-300/60 pt-3">
+        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.7.38
     </footer>
 
     <script>
@@ -389,21 +414,22 @@
 
                 if (currentRole) {
                     document.getElementById('sectionLogin').classList.add('hidden');
-                    document.getElementById('sectionApp').classList.remove('hidden');
                     document.getElementById('btnLogout').classList.remove('hidden');
+                    document.getElementById('containerSubTab').classList.remove('hidden');
+                    document.getElementById('containerFormRequest').classList.remove('hidden');
+                    document.getElementById('containerPapanInfo').classList.remove('hidden');
+                    document.getElementById('containerHubungiWA').classList.remove('hidden');
 
                     if (currentRole === 'admin') {
                         document.getElementById('tabBtnPanel').classList.remove('hidden');
                         document.getElementById('tabBtnRekap').classList.remove('hidden');
                         document.getElementById('panelShiftAktifCrew').classList.add('hidden');
-                        document.getElementById('panelPeriodeAdmin').classList.remove('hidden');
                         document.getElementById('wrapperInputCrewAdmin').classList.remove('hidden');
                         document.getElementById('labelFormRequestTitle').innerText = "Form Request & Izin Shift (Admin / Atas Nama Crew)";
                     } else {
                         document.getElementById('tabBtnPanel').classList.add('hidden');
                         document.getElementById('tabBtnRekap').classList.add('hidden');
                         document.getElementById('panelShiftAktifCrew').classList.remove('hidden');
-                        document.getElementById('panelPeriodeAdmin').classList.add('hidden');
                         document.getElementById('wrapperInputCrewAdmin').classList.add('hidden');
                         document.getElementById('labelFormRequestTitle').innerText = `Form Request & Izin Shift (${loggedInCrew})`;
                         setupInactivityTimer();
@@ -411,6 +437,26 @@
                     }
                 }
             });
+        }
+
+        function bukaFormLogin(tipe) {
+            document.getElementById('menuPilihanLogin').classList.add('hidden');
+            if (tipe === 'crew') {
+                document.getElementById('formLoginCrew').classList.remove('hidden');
+                document.getElementById('formLoginAdmin').classList.add('hidden');
+            } else {
+                document.getElementById('formLoginAdmin').classList.remove('hidden');
+                document.getElementById('formLoginCrew').classList.add('hidden');
+            }
+        }
+
+        function tutupFormLogin() {
+            document.getElementById('menuPilihanLogin').classList.remove('hidden');
+            document.getElementById('formLoginCrew').classList.add('hidden');
+            document.getElementById('formLoginAdmin').classList.add('hidden');
+            document.getElementById('passAdmin').value = '';
+            document.getElementById('passCrew').value = '';
+            document.getElementById('loginSelectCrew').value = '';
         }
 
         function parseLocalDate(d) {
@@ -437,15 +483,9 @@
                     if (data.crew && data.crew.length > 0) {
                         listCrew = data.crew.map(x => typeof x === 'object' && x !== null ? (x.name || '') : String(x)).filter(x => x.trim() !== '' && x !== 'undefined');
                     }
-                    if (data.schedule) {
-                        scheduleData = data.schedule;
-                    }
-                    if (data.requests) {
-                        requestData = data.requests;
-                    }
-                    if (data.weeks) {
-                        activeWeeks = data.weeks;
-                    }
+                    if (data.schedule) scheduleData = data.schedule;
+                    if (data.requests) requestData = data.requests;
+                    if (data.weeks) activeWeeks = data.weeks;
                     setServerStatus(true);
                     renderListRequestBeranda();
                     renderListRequestAdmin();
@@ -461,12 +501,7 @@
             document.getElementById('syncStatus').innerText = "Menyimpan ke server...";
             let payload = {
                 action: "saveData",
-                payload: {
-                    crew: listCrew,
-                    schedule: scheduleData,
-                    requests: requestData,
-                    weeks: activeWeeks
-                }
+                payload: { crew: listCrew, schedule: scheduleData, requests: requestData, weeks: activeWeeks }
             };
 
             fetch(WEB_APP_URL, {
@@ -544,9 +579,7 @@
             listCrew.forEach(c => {
                 select.innerHTML += `<option value="${c}">${c}</option>`;
             });
-            if (loggedInCrew) {
-                select.value = loggedInCrew;
-            }
+            if (loggedInCrew) select.value = loggedInCrew;
         }
 
         function updateBackupDropdown() {
@@ -604,12 +637,8 @@
 
             if (!shiftVal) {
                 box.innerHTML = `Hai <b>${loggedInCrew}</b>, hari ini <b>${formattedHariTgl}</b> kamu belum memiliki jadwal shift yang di-input admin.`;
-                box.style.backgroundColor = "#fff";
-                box.style.color = "#1f2937";
             } else {
-                box.innerHTML = `Hai <b>${loggedInCrew}</b>, hari ini <b>${formattedHariTgl}</b> kamu masuk: <span class="px-3 py-1 rounded-xl font-black shadow-sm text-sm inline-block mt-1" style="background-color: ${s.bg}; color: ${s.text};">${s.label}</span>`;
-                box.style.backgroundColor = "#fff";
-                box.style.color = "#1f2937";
+                box.innerHTML = `Hai <b>${loggedInCrew}</b>, hari ini <b>${formattedHariTgl}</b> kamu masuk: <span class="px-3 py-1 rounded-xl font-black shadow-sm text-sm inline-block mt-1" style="background-color: ${s.bg}; color: ${s.text};">${s.label} (${shiftVal})</span>`;
             }
         }
 
@@ -626,14 +655,9 @@
                 let selectedCrewName = document.getElementById('loginSelectCrew').value;
                 let passInput = document.getElementById('passCrew').value.trim();
 
-                if (!selectedCrewName) {
-                    alert('Silakan pilih nama crew terlebih dahulu!');
-                    return;
-                }
-                if (passInput !== "123456") {
-                    alert('Password Crew salah! (Gunakan: 123456)');
-                    return;
-                }
+                if (!selectedCrewName) return alert('Silakan pilih nama crew terlebih dahulu!');
+                if (passInput !== "123456") return alert('Password Crew salah! (Gunakan: 123456)');
+                
                 loggedInCrew = selectedCrewName;
                 localStorage.setItem('sandyrzt_logged_crew', loggedInCrew);
             }
@@ -642,21 +666,22 @@
             localStorage.setItem('sandyrzt_role', currentRole);
 
             document.getElementById('sectionLogin').classList.add('hidden');
-            document.getElementById('sectionApp').classList.remove('hidden');
             document.getElementById('btnLogout').classList.remove('hidden');
+            document.getElementById('containerSubTab').classList.remove('hidden');
+            document.getElementById('containerFormRequest').classList.remove('hidden');
+            document.getElementById('containerPapanInfo').classList.remove('hidden');
+            document.getElementById('containerHubungiWA').classList.remove('hidden');
 
             if (currentRole === 'admin') {
                 document.getElementById('tabBtnPanel').classList.remove('hidden');
                 document.getElementById('tabBtnRekap').classList.remove('hidden');
                 document.getElementById('panelShiftAktifCrew').classList.add('hidden');
-                document.getElementById('panelPeriodeAdmin').classList.remove('hidden');
                 document.getElementById('wrapperInputCrewAdmin').classList.remove('hidden');
                 document.getElementById('labelFormRequestTitle').innerText = "Form Request & Izin Shift (Admin / Atas Nama Crew)";
             } else {
                 document.getElementById('tabBtnPanel').classList.add('hidden');
                 document.getElementById('tabBtnRekap').classList.add('hidden');
                 document.getElementById('panelShiftAktifCrew').classList.remove('hidden');
-                document.getElementById('panelPeriodeAdmin').classList.add('hidden');
                 document.getElementById('wrapperInputCrewAdmin').classList.add('hidden');
                 document.getElementById('labelFormRequestTitle').innerText = `Form Request & Izin Shift (${loggedInCrew})`;
                 setupInactivityTimer();
@@ -672,12 +697,19 @@
             localStorage.removeItem('sandyrzt_logged_crew');
             clearTimeout(inactivityTimer);
 
-            document.getElementById('sectionApp').classList.add('hidden');
-            document.getElementById('btnLogout').classList.add('hidden');
+            tutupFormLogin();
             document.getElementById('sectionLogin').classList.remove('hidden');
-            document.getElementById('passAdmin').value = '';
-            document.getElementById('passCrew').value = '';
-            document.getElementById('loginSelectCrew').value = '';
+            document.getElementById('btnLogout').classList.add('hidden');
+            document.getElementById('containerSubTab').classList.add('hidden');
+            document.getElementById('containerFormRequest').classList.add('hidden');
+            document.getElementById('containerPapanInfo').classList.add('hidden');
+            document.getElementById('containerHubungiWA').classList.add('hidden');
+            document.getElementById('panelShiftAktifCrew').classList.add('hidden');
+            document.getElementById('tabPanel').classList.add('hidden');
+            document.getElementById('tabRekap').classList.add('hidden');
+            document.getElementById('tabBeranda').classList.remove('hidden');
+
+            renderTabelBeranda();
         }
 
         function switchTab(tab) {
@@ -685,25 +717,25 @@
             document.getElementById('tabPanel').classList.add('hidden');
             document.getElementById('tabRekap').classList.add('hidden');
             
-            document.getElementById('tabBtnBeranda').className = "flex-1 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
-            if (document.getElementById('tabBtnPanel')) document.getElementById('tabBtnPanel').className = "flex-1 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
-            if (document.getElementById('tabBtnRekap')) document.getElementById('tabBtnRekap').className = "flex-1 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
+            document.getElementById('tabBtnBeranda').className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
+            if (document.getElementById('tabBtnPanel')) document.getElementById('tabBtnPanel').className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
+            if (document.getElementById('tabBtnRekap')) document.getElementById('tabBtnRekap').className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
 
             if (tab === 'beranda') {
                 document.getElementById('tabBeranda').classList.remove('hidden');
-                document.getElementById('tabBtnBeranda').className = "flex-1 py-2 rounded-xl text-xs font-bold bg-red-600 text-white shadow-sm transition";
+                document.getElementById('tabBtnBeranda').className = "flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition";
                 renderTabelBeranda();
                 renderListRequestBeranda();
             } else if (tab === 'panel') {
                 if (!currentRole || currentRole !== 'admin') return alert('Akses khusus Admin!');
                 document.getElementById('tabPanel').classList.remove('hidden');
-                document.getElementById('tabBtnPanel').className = "flex-1 py-2 rounded-xl text-xs font-bold bg-red-600 text-white shadow-sm transition";
+                document.getElementById('tabBtnPanel').className = "flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition";
                 renderAdminWeekToggles();
                 renderListRequestAdmin();
             } else if (tab === 'rekap') {
                 if (!currentRole || currentRole !== 'admin') return alert('Akses khusus Admin!');
                 document.getElementById('tabRekap').classList.remove('hidden');
-                document.getElementById('tabBtnRekap').className = "flex-1 py-2 rounded-xl text-xs font-bold bg-red-600 text-white shadow-sm transition";
+                document.getElementById('tabBtnRekap').className = "flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition";
                 renderRekapBulanan();
             }
         }
@@ -759,7 +791,7 @@
                 let endLbl = new Date(wk[wk.length - 1].replace(/-/g, '/')).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
 
                 container.innerHTML += `
-                    <label class="flex items-center gap-1.5 bg-white/80 border border-gray-200 p-2 rounded-xl cursor-pointer shadow-sm hover:bg-white transition">
+                    <label class="flex items-center gap-2 bg-white/85 border border-gray-200 p-2.5 rounded-xl cursor-pointer shadow-sm hover:bg-white transition">
                         <input type="checkbox" ${isChecked} onchange="toggleActiveWeek('${mapKey}')" class="rounded text-red-600 focus:ring-red-500">
                         <span class="font-semibold text-gray-700">W${wIdx + 1} (${startLbl}-${endLbl})</span>
                     </label>
@@ -773,12 +805,8 @@
             renderTabelBeranda();
         }
 
-        // ================= FITUR DOWNLOAD & IMPORT TEMPLATE EXCEL MASTER =================
         function downloadTemplateMaster() {
-            if (listCrew.length === 0) {
-                return alert('Belum ada data crew yang terdaftar di sistem! Tambahkan crew terlebih dahulu.');
-            }
-
+            if (listCrew.length === 0) return alert('Belum ada data crew yang terdaftar di sistem!');
             let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
             let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
             let mStart = mEnd - 1;
@@ -797,10 +825,9 @@
 
             let header = ["Tanggal", ...listCrew];
             let ws_data = [header];
-
             allDays.forEach(dateStr => {
                 let row = [dateStr];
-                listCrew.forEach(() => row.push("")); // Kolom crew dikosongkan untuk diisi
+                listCrew.forEach(() => row.push(""));
                 ws_data.push(row);
             });
 
@@ -826,7 +853,7 @@
                     if (json.length < 2) return alert('File Excel kosong atau format tidak sesuai!');
 
                     let headerRow = json[0];
-                    let crewListInExcel = headerRow.slice(1); // Kolom setelah Tanggal adalah nama crew
+                    let crewListInExcel = headerRow.slice(1);
 
                     let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
                     let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
@@ -840,7 +867,6 @@
                         let dateStr = row[0];
                         if (!dateStr) continue;
 
-                        // Konversi serial number Excel ke tanggal string YYYY-MM-DD jika terbaca angka
                         if (typeof dateStr === 'number') {
                             let convertedDate = new Date(Math.round((dateStr - (25567 + 2)) * 86400 * 1000));
                             dateStr = parseLocalDate(convertedDate);
@@ -861,16 +887,15 @@
                     saveDataToCloud();
                     renderTabelBeranda();
                     renderRekapBulanan();
-                    document.getElementById('excelFileImport').value = ''; // Reset input file
+                    document.getElementById('excelFileImport').value = '';
                     alert(`Berhasil mengimpor jadwal dari Excel! Total sel terisi: ${successCount}.`);
                 } catch (err) {
                     console.error("Gagal membaca Excel:", err);
-                    alert('Terjadi kesalahan saat membaca file Excel. Pastikan format sesuai dengan Template Master.');
+                    alert('Terjadi kesalahan saat membaca file Excel.');
                 }
             };
             reader.readAsArrayBuffer(file);
         }
-        // ===========================================================================
 
         function tambahCrew() {
             const nameInput = document.getElementById('newCrewName');
@@ -908,9 +933,9 @@
             }
             listCrew.forEach(crew => {
                 container.innerHTML += `
-                    <span class="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-2.5 py-1 rounded-xl text-[10px] font-bold text-gray-700 shadow-sm">
+                    <span class="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-xl text-[10px] font-bold text-gray-700 shadow-sm">
                         ${crew}
-                        <button onclick="hapusCrew('${crew}')" class="text-red-500 hover:text-red-700 font-black">×</button>
+                        <button onclick="hapusCrew('${crew}')" class="text-red-500 hover:text-red-700 font-black text-xs">×</button>
                     </span>
                 `;
             });
@@ -930,7 +955,7 @@
                 crew = document.getElementById('reqCrewAdmin').value;
                 if (!crew) return alert('Silakan pilih nama crew terlebih dahulu!');
             } else {
-                if (!loggedInCrew) return alert('Sesi login crew tidak valid. Silakan login ulang.');
+                if (!loggedInCrew) return alert('Silakan login terlebih dahulu untuk mengirim request.');
                 crew = loggedInCrew;
             }
 
@@ -944,25 +969,6 @@
             if (jenis.includes('Izin')) {
                 durasi = parseInt(document.getElementById('izinDurasi').value) || 1;
                 backup = document.getElementById('izinBackup').value || "-";
-            }
-
-            let parts = date.split('-');
-            let reqDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-            let pAuto = hitungPeriodeDariTanggal(reqDateObj);
-
-            let startDatePeriode = new Date(pAuto.year, pAuto.month - 1 < 0 ? 11 : pAuto.month - 1, 26);
-            let endDatePeriode = new Date(pAuto.year, pAuto.month, 25);
-            let weeks = generateWeeksArray(startDatePeriode, endDatePeriode);
-
-            let targetWeek = weeks.find(wk => wk.includes(date));
-            if (targetWeek) {
-                let reqCountInWeek = requestData.filter(req => 
-                    req.crew === crew && targetWeek.includes(req.date)
-                ).length;
-
-                if (reqCountInWeek >= 3) {
-                    return alert(`Request gagal! Masing-masing crew hanya diperbolehkan request maksimal 3x dalam 1 minggu.`);
-                }
             }
 
             requestData.push({ id: Date.now(), crew, date, jenis, durasi, backup, status: 'pending' });
@@ -991,14 +997,14 @@
                 
                 let hapusBtnCrew = '';
                 if (req.status === 'pending' && (currentRole === 'admin' || (loggedInCrew && req.crew === loggedInCrew))) {
-                    hapusBtnCrew = `<button onclick="hapusRequestCrew(${req.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-0.5 rounded-xl text-[9px] font-bold shadow-sm" title="Hapus Request">Hapus</button>`;
+                    hapusBtnCrew = `<button onclick="hapusRequestCrew(${req.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded-xl text-[9px] font-bold shadow-sm">Hapus</button>`;
                 }
 
                 container.innerHTML += `
-                    <div class="p-3 border border-gray-200/80 rounded-xl bg-white/80 flex justify-between items-center text-[11px] shadow-sm">
+                    <div class="p-3.5 border border-gray-200/80 rounded-2xl bg-white/85 flex justify-between items-center text-[11px] shadow-sm">
                         <span><b>${req.crew}</b> mengajukan <b>${req.jenis}${durasiLabel}</b> tgl <b>${formatTanggalIndo(req.date)}</b>${backupLabel}</span>
-                        <div class="flex items-center gap-1.5">
-                            <span class="px-2.5 py-1 rounded-lg text-[9px] font-black ${badgeColor}">${statusText}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-xl text-[9px] font-black ${badgeColor}">${statusText}</span>
                             ${hapusBtnCrew}
                         </div>
                     </div>
@@ -1007,10 +1013,6 @@
         }
 
         function hapusRequestCrew(id) {
-            let req = requestData.find(x => x.id === id);
-            if (loggedInCrew && req && req.crew !== loggedInCrew && currentRole !== 'admin') {
-                return alert('Kamu hanya bisa menghapus request milik kamu sendiri!');
-            }
             if (confirm('Yakin ingin menghapus request ini?')) {
                 requestData = requestData.filter(x => x.id !== id);
                 saveDataToCloud();
@@ -1038,11 +1040,11 @@
                 if (req.status === 'pending') {
                     if (req.jenis.includes('Izin')) {
                         adminAction = `
-                            <div class="mt-2 flex flex-col gap-2 bg-white/90 p-2.5 rounded-xl border border-gray-200 shadow-inner">
-                                <p class="text-[10px] text-rose-700 font-semibold">⚠️ Crew mengajukan ${req.jenis}${durasiLabel}.${backupInfo} Klik setujui untuk ubah jadwal jadi IZIN & otomatis ubah crew backup jadi LEMBUR!</p>
+                            <div class="mt-2.5 flex flex-col gap-2.5 bg-white/95 p-3 rounded-xl border border-gray-200 shadow-inner">
+                                <p class="text-[10px] text-rose-700 font-semibold">⚠️ Crew mengajukan ${req.jenis}${durasiLabel}.${backupInfo}</p>
                                 <div class="flex gap-2">
-                                    <button onclick="approveRequest(${req.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-xl text-[10px] font-bold shadow-sm">Setujui Izin</button>
-                                    <button onclick="rejectRequest(${req.id})" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-1.5 rounded-xl text-[10px] font-bold shadow-sm">Tolak</button>
+                                    <button onclick="approveRequest(${req.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-[10px] font-bold shadow-sm">Setujui Izin</button>
+                                    <button onclick="rejectRequest(${req.id})" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl text-[10px] font-bold shadow-sm">Tolak</button>
                                 </div>
                             </div>
                         `;
@@ -1057,45 +1059,36 @@
                         else if (req.jenis === 'Libur') allowedOptions += `<option value="Libur Hitam">Libur (Libur)</option>`;
 
                         adminAction = `
-                            <div class="mt-2 flex flex-col gap-2 bg-white/90 p-2.5 rounded-xl border border-gray-200 shadow-inner">
-                                <select id="approve_shift_${req.id}" class="p-2 border border-gray-300 rounded-xl text-[10px] bg-white font-medium">${allowedOptions}</select>
+                            <div class="mt-2.5 flex flex-col gap-2.5 bg-white/95 p-3 rounded-xl border border-gray-200 shadow-inner">
+                                <select id="approve_shift_${req.id}" class="p-2.5 border border-gray-300 rounded-xl text-[10px] bg-white font-medium">${allowedOptions}</select>
                                 <div class="flex gap-2">
-                                    <button onclick="approveRequest(${req.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-xl text-[10px] font-bold shadow-sm">Setujui</button>
-                                    <button onclick="rejectRequest(${req.id})" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-1.5 rounded-xl text-[10px] font-bold shadow-sm">Tolak</button>
+                                    <button onclick="approveRequest(${req.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-[10px] font-bold shadow-sm">Setujui</button>
+                                    <button onclick="rejectRequest(${req.id})" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl text-[10px] font-bold shadow-sm">Tolak</button>
                                 </div>
                             </div>
                         `;
                     }
                 } else {
                     adminAction = `
-                        <div class="mt-2 flex justify-end">
-                            <button onclick="resetRequest(${req.id})" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded-xl text-[9px] font-bold shadow-sm">Reset Status</button>
+                        <div class="mt-2.5 flex justify-end">
+                            <button onclick="resetRequest(${req.id})" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1.5 rounded-xl text-[9px] font-bold shadow-sm">Reset Status</button>
                         </div>
                     `;
                 }
 
                 container.innerHTML += `
-                    <div class="p-3 border border-gray-200/80 rounded-xl bg-white/80 flex flex-col gap-1.5 shadow-sm">
+                    <div class="p-3.5 border border-gray-200/80 rounded-2xl bg-white/85 flex flex-col gap-2 shadow-sm">
                         <div class="flex justify-between items-center text-[11px]">
                             <span><b>${req.crew}</b> | Tgl: ${formatTanggalIndo(req.date)}${durasiLabel} | Jenis: <b>${req.jenis}</b></span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="px-2.5 py-1 rounded-lg text-[9px] font-black ${badgeColor}">${statusText}</span>
-                                <button onclick="hapusRequestAdmin(${req.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded-xl text-[9px] font-bold shadow-sm" title="Hapus">🗑️</button>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-xl text-[9px] font-black ${badgeColor}">${statusText}</span>
+                                <button onclick="hapusRequestAdmin(${req.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-xl text-[9px] font-bold shadow-sm">🗑️</button>
                             </div>
                         </div>
                         ${adminAction}
                     </div>
                 `;
             });
-        }
-
-        function hapusRequestAdmin(id) {
-            if (confirm('Yakin ingin menghapus request ini?')) {
-                requestData = requestData.filter(x => x.id !== id);
-                saveDataToCloud();
-                renderListRequestBeranda();
-                renderListRequestAdmin();
-            }
         }
 
         function approveRequest(id) {
@@ -1129,12 +1122,11 @@
 
             req.status = 'approved';
             saveDataToCloud();
-
             renderListRequestBeranda();
             renderListRequestAdmin();
             renderTabelBeranda();
             renderRekapBulanan();
-            alert('Request/Izin disetujui, jadwal crew izin & backup lembur berhasil diperbarui otomatis!');
+            alert('Request/Izin berhasil disetujui & diperbarui!');
         }
 
         function rejectRequest(id) {
@@ -1180,9 +1172,8 @@
                 allDates.forEach(dateStr => {
                     let shift = periodData[dateStr] && periodData[dateStr][crew];
                     if (shift) {
-                        if (shift === 'IZIN') {
-                            jumlahIzin++;
-                        } else if (shift === 'Lemburan Hijau') {
+                        if (shift === 'IZIN') jumlahIzin++;
+                        else if (shift === 'Lemburan Hijau') {
                             jumlahMasuk++;
                             jumlahLembur++;
                         } else if (shift !== 'Libur Hitam') {
@@ -1218,17 +1209,15 @@
             container.innerHTML = '';
             listCrew.forEach(crew => {
                 container.innerHTML += `
-                    <div class="flex items-center justify-between gap-2 bg-white/90 p-2 rounded-xl border border-gray-200 shadow-sm">
-                        <span class="font-bold text-xs w-24 truncate text-gray-800">${crew}</span>
-                        <select id="shift_crew_${crew}" class="w-full p-1.5 border border-gray-300 rounded-xl text-xs bg-gray-50 font-medium">${shiftOptionsHTML}</select>
+                    <div class="flex items-center justify-between gap-2.5 bg-white/90 p-2.5 rounded-xl border border-gray-200 shadow-sm">
+                        <span class="font-bold text-xs w-28 truncate text-gray-800">${crew}</span>
+                        <select id="shift_crew_${crew}" class="w-full p-2 border border-gray-300 rounded-xl text-xs bg-gray-50 font-medium">${shiftOptionsHTML}</select>
                     </div>
                 `;
             });
 
             listCrew.forEach(crew => {
-                if (savedDayData[crew]) {
-                    document.getElementById(`shift_crew_${crew}`).value = savedDayData[crew];
-                }
+                if (savedDayData[crew]) document.getElementById(`shift_crew_${crew}`).value = savedDayData[crew];
             });
         }
 
@@ -1309,7 +1298,6 @@
             let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
             let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
             let currentPeriode = getPeriodeKey(mEnd, yEnd);
-            document.getElementById('berandaTitlePeriode').innerText = `Rekap Periode: ${currentPeriode}`;
 
             const wrapperTabel = document.getElementById('wrapperTabelBeranda');
             const statusInfo = document.getElementById('berandaInfoStatus');
@@ -1334,11 +1322,11 @@
 
             if (visibleWeeks.length === 0) {
                 wrapperTabel.classList.add('hidden');
-                statusInfo.innerText = "Belum ada minggu yang diaktifkan oleh Admin.";
+                if (statusInfo) statusInfo.innerText = "Belum ada minggu yang diaktifkan oleh Admin.";
                 return;
             } else {
                 wrapperTabel.classList.remove('hidden');
-                statusInfo.innerText = "Jadwal Mingguan Tersedia";
+                if (statusInfo) statusInfo.innerText = "Jadwal Mingguan Tersedia";
             }
 
             if (!visibleWeeks.some(vw => vw.index === activeWeekIndex)) {
@@ -1359,8 +1347,8 @@
                 let wIdx = vw.index;
                 let startLbl = new Date(wk[0].replace(/-/g, '/')).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
                 let endLbl = new Date(wk[wk.length - 1].replace(/-/g, '/')).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-                let activeClass = wIdx === activeWeekIndex ? 'bg-red-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200';
-                weekTabsContainer.innerHTML += `<button onclick="switchWeek(${wIdx})" class="px-3 py-1.5 rounded-xl text-[11px] font-bold transition ${activeClass}">Week ${wIdx + 1} (${startLbl} - ${endLbl})</button>`;
+                let activeClass = wIdx === activeWeekIndex ? 'bg-red-600 text-white shadow-md shadow-red-500/20' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200';
+                weekTabsContainer.innerHTML += `<button onclick="switchWeek(${wIdx})" class="px-3.5 py-2 rounded-xl text-[11px] font-bold transition ${activeClass}">Week ${wIdx + 1} (${startLbl} - ${endLbl})</button>`;
             });
 
             tbody.innerHTML = '';
@@ -1369,7 +1357,6 @@
 
             activeDates.forEach(dateStr => {
                 let formattedDateName = formatTanggalIndo(dateStr);
-                
                 let rowHTML = `<td class="border-b border-gray-100 font-semibold bg-gray-50/80 text-left">${formattedDateName}</td>`;
                 listCrew.forEach(crew => {
                     let val = (periodData[dateStr] && periodData[dateStr][crew]) || '';
