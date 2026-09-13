@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIXUE SHIFT MAKER v1.7.17</title>
+    <title>MIXUE SHIFT MAKER v1.7.21</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -115,29 +115,51 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
                         <div id="wrapperInputCrewAdmin" class="hidden">
                             <label class="text-[9px] text-gray-500 block">Pilih Nama Crew:</label>
-                            <select id="reqCrewAdmin" class="w-full p-1.5 border rounded"><option value="">Pilih Nama Crew</option></select>
+                            <select id="reqCrewAdmin" class="w-full p-1.5 border rounded" onchange="updateBackupDropdown()"><option value="">Pilih Nama Crew</option></select>
                         </div>
                         <div>
-                            <label class="text-[9px] text-gray-500 block">Pilih Tanggal:</label>
+                            <label class="text-[9px] text-gray-500 block">Pilih Tanggal Mulai:</label>
                             <input type="date" id="reqDate" class="w-full p-1.5 border rounded">
                         </div>
                         <div>
                             <label class="text-[9px] text-gray-500 block">Pilih Jenis Request/Izin:</label>
-                            <select id="reqJenis" class="w-full p-1.5 border rounded">
+                            <select id="reqJenis" class="w-full p-1.5 border rounded" onchange="toggleFormIzinDetail()">
                                 <option value="Pagi">Request Shift: Pagi</option>
                                 <option value="Siang">Request Shift: Siang</option>
                                 <option value="Middle">Request Shift: Middle</option>
-                                <option value="SWC">Request Shift: SWC (Oren)</option>
-                                <option value="PWC">Request Shift: PWC (Pink)</option>
                                 <option value="Lemburan">Request Shift: Lemburan (Hijau)</option>
                                 <option value="Libur">Request Shift: Libur</option>
                                 <option value="Izin Sakit">Izin: Sakit</option>
-                                <option value="Izin Keluarga">Izin: Keperluan Keluarga</option>
+                                <option value="Izin Keperluan...">Izin: Keperluan</option>
                             </select>
                         </div>
                     </div>
 
-                    <button onclick="kirimRequest()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs shadow">Kirim Request / Izin</button>
+                    <!-- PENGATURAN TAMBAHAN KHUSUS IZIN -->
+                    <div id="wrapperFormIzin" class="hidden p-2.5 bg-gray-50 border border-blue-200 rounded space-y-2 text-xs">
+                        <p class="font-bold text-blue-700 text-[11px]">📋 Pengaturan Durasi & Backup Shift</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[9px] text-gray-500 block">Izin Berapa Hari:</label>
+                                <input type="number" id="izinDurasi" min="1" value="1" class="w-full p-1.5 border rounded">
+                            </div>
+                            <div>
+                                <label class="text-[9px] text-gray-500 block">Crew Pengganti Lembur:</label>
+                                <select id="izinBackup" class="w-full p-1.5 border rounded bg-white">
+                                    <option value="-">Tanpa Backup</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-gray-500 block">Keterangan / Alasan:</label>
+                            <input type="text" id="izinKeterangan" class="w-full p-1.5 border rounded" placeholder="Tuliskan keperluan izin di sini...">
+                        </div>
+                        <button onclick="kirimPesanWAAdmin()" class="w-full bg-emerald-600 text-white font-bold py-1.5 rounded text-xs shadow flex items-center justify-center gap-1">
+                             Kirim Format Surat Izin ke Group Absen
+                        </button>
+                    </div>
+
+                    <button onclick="kirimRequest()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs shadow">Kirim Request / Izin ke Sistem</button>
                     
                     <div id="notifBarRequest" class="hidden bg-amber-100 border border-amber-300 text-amber-800 p-2 rounded text-[11px] font-semibold">
                         📢 Request Anda telah tercatat dan dikirim ke Admin.
@@ -154,10 +176,10 @@
 
                 <!-- HUBUNGI PENGEMBANG -->
                 <div class="bg-white p-3 rounded-lg shadow border-t-4 border-green-500">
-                    <h3 class="font-bold text-xs mb-2 text-green-800">💬 Hubungi Admin</h3>
+                    <h3 class="font-bold text-xs mb-2 text-green-800"> Hubungi Admin</h3>
                     <div class="space-y-2">
                         <textarea id="waPesan" class="w-full p-2 border rounded text-xs" rows="2" placeholder="Tulis pesan atau kendala aplikasi di sini..."></textarea>
-                        <button onclick="kirimWA()" class="bg-green-600 text-white font-bold px-3 py-1.5 rounded text-xs shadow hover:bg-green-700">Kirim Pesan ke WhatsApp Pengembang</button>
+                        <button onclick="kirimWA()" class="bg-green-600 text-white font-bold px-3 py-1.5 rounded text-xs shadow hover:bg-green-700">Kirim Pesan ke Admin</button>
                     </div>
                 </div>
 
@@ -243,7 +265,7 @@
 
     <!-- FOOTER COPYRIGHT -->
     <footer class="text-center text-[10px] text-gray-500 mt-4 border-t pt-2">
-        © 2026 Web ini dikelola Sandy Versi 1.7.17 (Cloud Sync)
+        © 2026 Web ini dikelola Sandy Versi 1.7.21 (Cloud Sync)
     </footer>
 
     <script>
@@ -451,6 +473,45 @@
             if (loggedInCrew) {
                 select.value = loggedInCrew;
             }
+        }
+
+        function updateBackupDropdown() {
+            const selectBackup = document.getElementById('izinBackup');
+            if (!selectBackup) return;
+            let currentActiveCrew = (currentRole === 'admin') ? (document.getElementById('reqCrewAdmin').value || '') : loggedInCrew;
+            selectBackup.innerHTML = '<option value="-">Tanpa Backup</option>';
+            listCrew.forEach(c => {
+                if (c !== currentActiveCrew) {
+                    selectBackup.innerHTML += `<option value="${c}">${c}</option>`;
+                }
+            });
+        }
+
+        function toggleFormIzinDetail() {
+            let jenis = document.getElementById('reqJenis').value;
+            let wrapper = document.getElementById('wrapperFormIzin');
+            if (jenis === 'Izin Sakit' || jenis === 'Izin Keperluan...') {
+                wrapper.classList.remove('hidden');
+                updateBackupDropdown();
+            } else {
+                wrapper.classList.add('hidden');
+            }
+        }
+
+        function kirimPesanWAAdmin() {
+            let crew = (currentRole === 'admin') ? document.getElementById('reqCrewAdmin').value : loggedInCrew;
+            if (!crew) return alert('Silakan pilih nama crew terlebih dahulu!');
+            let date = document.getElementById('reqDate').value;
+            if (!date) return alert('Pilih tanggal mulai terlebih dahulu!');
+            let jenis = document.getElementById('reqJenis').value;
+            let durasi = document.getElementById('izinDurasi').value || '1';
+            let keterangan = document.getElementById('izinKeterangan').value || '-';
+            let backup = document.getElementById('izinBackup').value || '-';
+
+            let pesan = `Shalom / Selamat Pagi/Siang Bapak Indra,\n\nSaya yang mengirim pesan di bawah ini:\n- Nama Crew: ${crew}\n- Jenis Izin: ${jenis}\n- Durasi Izin: ${durasi} Hari\n- Mulai Tanggal: ${formatTanggalIndo(date)}\n- Keterangan / Alasan: ${keterangan}\n\nMelalui pesan ini, saya mengajukan permohonan izin tidak dapat masuk kerja sesuai jadwal di atas. Dan akan di backup @ ${backup}. Atas izin dan perhatiannya saya ucapkan Terima kasih.`;
+
+            let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`;
+            window.open(url, '_blank');
         }
 
         function tampilkanShiftAktifCrewLogins() {
@@ -686,6 +747,7 @@
             if (!select) return;
             select.innerHTML = '<option value="">Pilih Nama Crew</option>';
             listCrew.forEach(c => { select.innerHTML += `<option value="${c}">${c}</option>`; });
+            updateBackupDropdown();
         }
 
         function kirimRequest() {
@@ -700,8 +762,15 @@
 
             let date = document.getElementById('reqDate').value;
             let jenis = document.getElementById('reqJenis').value;
+            let durasi = 1;
+            let backup = "-";
 
             if (!date) return alert('Pilih tanggal request terlebih dahulu!');
+
+            if (jenis.includes('Izin')) {
+                durasi = parseInt(document.getElementById('izinDurasi').value) || 1;
+                backup = document.getElementById('izinBackup').value || "-";
+            }
 
             let parts = date.split('-');
             let reqDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -722,8 +791,7 @@
                 }
             }
 
-            // Simpan request tanpa lampiran foto agar langsung stabil dan masuk ke admin
-            requestData.push({ id: Date.now(), crew, date, jenis, status: 'pending' });
+            requestData.push({ id: Date.now(), crew, date, jenis, durasi, backup, status: 'pending' });
             saveDataToCloud();
             
             renderListRequestBeranda();
@@ -744,6 +812,8 @@
             requestData.forEach(req => {
                 let badgeColor = req.status === 'approved' ? 'bg-green-500 text-white' : (req.status === 'rejected' ? 'bg-red-500 text-white' : 'bg-yellow-400 text-gray-900');
                 let statusText = req.status === 'approved' ? 'DISETUJUI' : (req.status === 'rejected' ? 'TIDAK DISETUJUI' : 'KUNING (MENUNGGU KEPUTUSAN)');
+                let durasiLabel = (req.durasi && req.durasi > 1) ? ` (${req.durasi} Hari)` : '';
+                let backupLabel = (req.backup && req.backup !== '-') ? ` | Backup: ${req.backup}` : '';
                 
                 let hapusBtnCrew = '';
                 if (req.status === 'pending' && (currentRole === 'admin' || (loggedInCrew && req.crew === loggedInCrew))) {
@@ -752,7 +822,7 @@
 
                 container.innerHTML += `
                     <div class="p-2 border rounded bg-gray-50 flex justify-between items-center text-[11px]">
-                        <span><b>${req.crew}</b> mengajukan <b>${req.jenis}</b> tgl <b>${formatTanggalIndo(req.date)}</b></span>
+                        <span><b>${req.crew}</b> mengajukan <b>${req.jenis}${durasiLabel}</b> tgl <b>${formatTanggalIndo(req.date)}</b>${backupLabel}</span>
                         <div class="flex items-center gap-1">
                             <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${badgeColor}">${statusText}</span>
                             ${hapusBtnCrew}
@@ -787,13 +857,15 @@
             requestData.forEach(req => {
                 let badgeColor = req.status === 'approved' ? 'bg-green-500 text-white' : (req.status === 'rejected' ? 'bg-red-500 text-white' : 'bg-yellow-400 text-gray-900');
                 let statusText = req.status === 'approved' ? 'DISETUJUI' : (req.status === 'rejected' ? 'TIDAK DISETUJUI' : 'KUNING (MENUNGGU KEPUTUSAN)');
+                let durasiLabel = (req.durasi && req.durasi > 1) ? ` (${req.durasi} Hari)` : '';
+                let backupInfo = (req.backup && req.backup !== '-') ? `<br><b>Backup:</b> ${req.backup} (Otomatis Lembur)` : '';
                 let adminAction = '';
 
                 if (req.status === 'pending') {
                     if (req.jenis.includes('Izin')) {
                         adminAction = `
                             <div class="mt-1 flex flex-col gap-1">
-                                <p class="text-[10px] text-red-600 font-semibold">⚠️ Crew mengajukan ${req.jenis}, silakan setujui untuk mengubah jadwal jadi merah (IZIN)!</p>
+                                <p class="text-[10px] text-red-600 font-semibold">⚠️ Crew mengajukan ${req.jenis}${durasiLabel}.${backupInfo} Klik setujui untuk ubah jadwal jadi IZIN & otomatis ubah crew backup jadi LEMBUR!</p>
                                 <div class="flex gap-1">
                                     <button onclick="approveRequest(${req.id})" class="flex-1 bg-green-600 text-white py-1 rounded text-[10px] font-bold">Setujui Izin</button>
                                     <button onclick="rejectRequest(${req.id})" class="flex-1 bg-red-600 text-white py-1 rounded text-[10px] font-bold">Tolak</button>
@@ -831,7 +903,7 @@
                 container.innerHTML += `
                     <div class="p-2 border rounded bg-gray-50 flex flex-col gap-1">
                         <div class="flex justify-between items-center text-[11px]">
-                            <span><b>${req.crew}</b> | Tgl: ${formatTanggalIndo(req.date)} | Jenis: <b>${req.jenis}</b></span>
+                            <span><b>${req.crew}</b> | Tgl: ${formatTanggalIndo(req.date)}${durasiLabel} | Jenis: <b>${req.jenis}</b></span>
                             <div class="flex items-center gap-1">
                                 <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${badgeColor}">${statusText}</span>
                                 <button onclick="hapusRequestAdmin(${req.id})" class="bg-red-700 text-white px-1.5 py-0.5 rounded text-[9px] font-bold" title="Hapus">🗑️</button>
@@ -855,19 +927,30 @@
         function approveRequest(id) {
             let req = requestData.find(x => x.id === id);
             let parts = req.date.split('-');
-            let dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-            let pAuto = hitungPeriodeDariTanggal(dateObj);
-            let periodeKey = getPeriodeKey(pAuto.month, pAuto.year);
+            let startDate = new Date(parts[0], parts[1] - 1, parts[2]);
+            let durasi = req.durasi || 1;
 
-            if (!scheduleData[periodeKey]) scheduleData[periodeKey] = {};
-            if (!scheduleData[periodeKey][req.date]) scheduleData[periodeKey][req.date] = {};
+            for (let i = 0; i < durasi; i++) {
+                let currDate = new Date(startDate);
+                currDate.setDate(startDate.getDate() + i);
+                let dateStr = parseLocalDate(currDate);
 
-            if (req.jenis.includes('Izin')) {
-                scheduleData[periodeKey][req.date][req.crew] = 'IZIN';
-            } else {
-                let selectShift = document.getElementById(`approve_shift_${id}`).value;
-                if (!selectShift) return alert('Pilih shift sesuai request!');
-                scheduleData[periodeKey][req.date][req.crew] = selectShift;
+                let pAuto = hitungPeriodeDariTanggal(currDate);
+                let periodeKey = getPeriodeKey(pAuto.month, pAuto.year);
+
+                if (!scheduleData[periodeKey]) scheduleData[periodeKey] = {};
+                if (!scheduleData[periodeKey][dateStr]) scheduleData[periodeKey][dateStr] = {};
+
+                if (req.jenis.includes('Izin')) {
+                    scheduleData[periodeKey][dateStr][req.crew] = 'IZIN';
+                    if (req.backup && req.backup !== '-') {
+                        scheduleData[periodeKey][dateStr][req.backup] = 'Lemburan Hijau';
+                    }
+                } else {
+                    let selectShift = document.getElementById(`approve_shift_${id}`).value;
+                    if (!selectShift) return alert('Pilih shift sesuai request!');
+                    scheduleData[periodeKey][dateStr][req.crew] = selectShift;
+                }
             }
 
             req.status = 'approved';
@@ -877,7 +960,7 @@
             renderListRequestAdmin();
             renderTabelBeranda();
             renderRekapBulanan();
-            alert('Request/Izin disetujui & jadwal diperbarui!');
+            alert('Request/Izin disetujui, jadwal crew izin & backup lembur berhasil diperbarui otomatis!');
         }
 
         function rejectRequest(id) {
