@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.7.38</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.7.41</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -50,9 +50,34 @@
         button:active {
             transform: scale(0.97);
         }
+
+        /* Animasi Spinner ala iOS */
+        @keyframes iosSpinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-spinner {
+            animation: iosSpinner 0.8s linear infinite;
+        }
+
+        /* Overlay Loading Blur Transparan */
+        #loadingOverlay {
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
     </style>
 </head>
 <body class="text-gray-800 font-sans p-3 max-w-full min-h-screen flex flex-col justify-between">
+
+    <!-- OVERLAY LOADING BLUR TRANSPARAN -->
+    <div id="loadingOverlay" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex flex-col items-center justify-center p-4">
+        <div class="glass-card p-6 flex flex-col items-center gap-3.5 max-w-xs w-full text-center shadow-2xl border border-white/60">
+            <div class="w-10 h-10 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spinner"></div>
+            <div class="space-y-1">
+                <p class="font-black text-xs text-gray-900 uppercase tracking-wide">Tunggu ya!</p>
+                <p class="text-[11px] font-semibold text-gray-600">lagi hubungkan ke server nih..</p>
+            </div>
+        </div>
+    </div>
 
     <div>
         <!-- HEADER UTAMA -->
@@ -60,9 +85,9 @@
             <div class="absolute -right-8 -top-8 w-24 h-24 bg-white/20 rounded-full blur-xl"></div>
             <div class="absolute -left-8 -bottom-8 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
             <h1 class="text-base font-black tracking-wider uppercase relative z-10">JADWAL KERJA MIXUE SUKOREJO</h1>
-            <div class="flex items-center justify-center gap-1.5 mt-1.5 relative z-10">
-                <span id="dotServer" class="w-2.5 h-2.5 rounded-full bg-amber-300 inline-block animate-pulse"></span>
-                <span id="syncStatus" class="text-[10px] font-semibold text-red-100">Menghubungkan ke server...</span>
+            <div class="flex items-center justify-center gap-2 mt-1.5 relative z-10">
+                <div id="spinnerContainerHeader" class="w-2.5 h-2.5 rounded-full bg-emerald-300 inline-block"></div>
+                <span id="syncStatus" class="text-[10px] font-semibold text-red-100">Terhubung ke Server</span>
             </div>
             <button id="btnLogout" onclick="logout()" class="hidden absolute right-3.5 top-4 bg-black/20 hover:bg-black/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold backdrop-blur transition shadow-sm z-10">Keluar</button>
         </div>
@@ -121,7 +146,7 @@
                     </div>
                 </div>
 
-                <!-- KOTAK LOGIN DIPINDAH KE BAWAH TABEL -->
+                <!-- KOTAK LOGIN DI BAWAH TABEL -->
                 <div id="sectionLogin" class="space-y-2">
                     <div class="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-center py-2.5 px-3 rounded-2xl font-black text-[10px] tracking-wider uppercase shadow-lg shadow-red-500/20 animate-pulse">
                         ⚠️ LOGIN UNTUK REKUES, IZIN, ATAU AKSES FITUR LAIN ⚠️
@@ -349,7 +374,7 @@
 
     <!-- FOOTER COPYRIGHT -->
     <footer class="text-center text-[10px] text-gray-500 mt-8 border-t border-gray-300/60 pt-3">
-        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.7.38
+        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.7.41
     </footer>
 
     <script>
@@ -381,15 +406,23 @@
         `;
 
         function setServerStatus(isConnected) {
-            const dot = document.getElementById('dotServer');
-            const statusText = document.getElementById('syncStatus');
-            if (!dot || !statusText) return;
+            const overlay = document.getElementById('loadingOverlay');
+            const spinnerHeader = document.getElementById('spinnerContainerHeader');
+            const statusHeader = document.getElementById('syncStatus');
+
+            if (!spinnerHeader || !statusHeader) return;
+            
             if (isConnected) {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block";
-                statusText.innerText = "Terhubung ke Server";
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.classList.add('hidden'), 400);
+                }
+                spinnerHeader.className = "w-2.5 h-2.5 rounded-full bg-emerald-300 inline-block";
+                statusHeader.innerText = "Terhubung ke Server";
             } else {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
-                statusText.innerText = "Terputus dari Server (Offline)";
+                if (overlay) overlay.classList.remove('hidden', 'opacity-0');
+                spinnerHeader.className = "w-2.5 h-2.5 rounded-full bg-rose-400 inline-block";
+                statusHeader.innerText = "Menghubungkan ke server...";
             }
         }
 
@@ -476,7 +509,6 @@
 
         function loadDataFromCloud() {
             setServerStatus(false);
-            document.getElementById('syncStatus').innerText = "Mengambil data dari server...";
             return fetch(WEB_APP_URL + "?action=getData")
                 .then(response => response.json())
                 .then(data => {
@@ -492,13 +524,23 @@
                 })
                 .catch(err => {
                     console.error("Gagal sinkron cloud:", err);
-                    setServerStatus(false);
+                    const spinnerHeader = document.getElementById('spinnerContainerHeader');
+                    const statusHeader = document.getElementById('syncStatus');
+                    const overlay = document.getElementById('loadingOverlay');
+
+                    if (spinnerHeader && statusHeader) {
+                        spinnerHeader.className = "w-2.5 h-2.5 rounded-full bg-rose-400 inline-block";
+                        statusHeader.innerText = "Terputus dari Server (Offline)";
+                    }
+                    if (overlay) {
+                        overlay.style.opacity = '0';
+                        setTimeout(() => overlay.classList.add('hidden'), 400);
+                    }
                 });
         }
 
         function saveDataToCloud() {
             setServerStatus(false);
-            document.getElementById('syncStatus').innerText = "Menyimpan ke server...";
             let payload = {
                 action: "saveData",
                 payload: { crew: listCrew, schedule: scheduleData, requests: requestData, weeks: activeWeeks }
@@ -516,7 +558,12 @@
             })
             .catch(err => {
                 console.error("Gagal simpan ke cloud:", err);
-                setServerStatus(false);
+                const spinnerHeader = document.getElementById('spinnerContainerHeader');
+                const statusHeader = document.getElementById('syncStatus');
+                if (spinnerHeader && statusHeader) {
+                    spinnerHeader.className = "w-2.5 h-2.5 rounded-full bg-rose-400 inline-block";
+                    statusHeader.innerText = "Gagal Menyimpan (Offline)";
+                }
             });
         }
 
@@ -1300,7 +1347,6 @@
             let currentPeriode = getPeriodeKey(mEnd, yEnd);
 
             const wrapperTabel = document.getElementById('wrapperTabelBeranda');
-            const statusInfo = document.getElementById('berandaInfoStatus');
 
             let mStart = mEnd - 1;
             let yStart = yEnd;
@@ -1322,11 +1368,9 @@
 
             if (visibleWeeks.length === 0) {
                 wrapperTabel.classList.add('hidden');
-                if (statusInfo) statusInfo.innerText = "Belum ada minggu yang diaktifkan oleh Admin.";
                 return;
             } else {
                 wrapperTabel.classList.remove('hidden');
-                if (statusInfo) statusInfo.innerText = "Jadwal Mingguan Tersedia";
             }
 
             if (!visibleWeeks.some(vw => vw.index === activeWeekIndex)) {
