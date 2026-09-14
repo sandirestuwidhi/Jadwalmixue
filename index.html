@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.14 (Interactive WA Template)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.15 (Sanrezt Creative)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,6 +25,21 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+
+        // Indikator Koneksi Realtime Firebase (.info/connected)
+        const connectedRef = ref(db, ".info/connected");
+        onValue(connectedRef, (snap) => {
+            let emojiEl = document.getElementById('indicatorEmoji');
+            if (emojiEl) {
+                if (snap.val() === true) {
+                    emojiEl.innerText = "😎"; // Konek (Kacamata)
+                    emojiEl.title = "Status: Terhubung ke Server";
+                } else {
+                    emojiEl.innerText = "😡"; // Terputus (Marah)
+                    emojiEl.title = "Status: Terputus / Offline";
+                }
+            }
+        });
 
         window.dbRef = db;
         window.FB_ref = ref;
@@ -87,9 +102,9 @@
 
     <div class="space-y-4 pb-24">
         
-        <!-- HEADER UTAMA -->
+        <!-- HEADER UTAMA DENGAN INDIKATOR EMOJI KONEKSI -->
         <div class="relative flex items-center justify-between bg-white/80 p-3.5 rounded-3xl shadow-sm border border-white">
-            <span class="text-2xl">😎</span>
+            <span id="indicatorEmoji" class="text-2xl cursor-pointer" title="Memeriksa koneksi...">😎</span>
             <div class="text-center absolute left-1/2 -translate-x-1/2">
                 <h1 class="text-xs font-black tracking-wider uppercase">JADWAL KERJA</h1>
                 <span id="labelHaloUser" class="text-[10px] font-bold text-gray-500">Hallo [Tamu]</span>
@@ -102,7 +117,6 @@
 
         <!-- ================= PAGE: BERANDA ================= -->
         <div id="page-home" class="space-y-4">
-            <!-- PERIODE SELECTOR -->
             <div class="glass-card p-3 flex justify-between items-center">
                 <div>
                     <span class="text-[10px] font-black text-red-600 uppercase">Periode Aktif</span>
@@ -134,7 +148,7 @@
             <!-- KARTU HARIAN DINAMIS -->
             <div id="containerCardHarian" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 pt-1"></div>
 
-            <!-- AREA TERKUNCI: PAPAN INFO & REQUEST -->
+            <!-- AREA TERKUNCI -->
             <div id="wrapperFiturTerkunci" class="space-y-3 locked-overlay">
                 <div class="bg-purple-400 text-white p-4 rounded-3xl shadow-lg shadow-purple-500/20 space-y-2">
                     <div class="flex justify-between items-center">
@@ -192,7 +206,7 @@
             </div>
         </div>
 
-        <!-- ================= PAGE: REQUEST & INTERACTIVE WA TEMPLATE ================= -->
+        <!-- ================= PAGE: REQUEST ================= -->
         <div id="page-request" class="space-y-3 hidden">
             <div class="glass-card p-4 space-y-3">
                 <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">📋 Form Request & Template Grup WA</h3>
@@ -237,7 +251,7 @@
             </div>
         </div>
 
-        <!-- ================= PAGE: REKAPAN & MASTER FILE ================= -->
+        <!-- ================= PAGE: REKAPAN ================= -->
         <div id="page-rekap" class="space-y-3 hidden">
             <div class="glass-card p-4 space-y-3">
                 <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">📈 Rekapan & Master File</h3>
@@ -248,7 +262,7 @@
             </div>
         </div>
 
-        <!-- ================= PAGE: PROFIL & TAMBAH CREW ================= -->
+        <!-- ================= PAGE: PROFIL ================= -->
         <div id="page-profile" class="space-y-3 hidden">
             <div class="glass-card p-4 space-y-3">
                 <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">👤 Profil & Manajemen Crew</h3>
@@ -267,6 +281,11 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- WATERMARK CREATOR -->
+        <div class="text-center pt-2 pb-2">
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.15</p>
         </div>
 
     </div>
@@ -729,7 +748,6 @@
             renderPapanInfo();
         }
 
-        // UPDATE TEMPLATE WA SECARA REALTIME SESUAI PERMINTAAN ANDA
         function updateWADraft() {
             let jenis = document.getElementById('reqJenis').value;
             let jmlHari = document.getElementById('reqBerapaHari').value || '1';
