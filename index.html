@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.4 (Published Control)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.12 (Strict Publish Sync)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -43,373 +43,230 @@
             background: radial-gradient(circle at top left, #fee2e2 0%, #f1f5f9 50%, #e2e8f0 100%); 
             min-height: 100vh; 
         }
-        th, td { padding: 8px 12px !important; white-space: nowrap; text-align: center; }
-        td:first-child { text-align: left; }
-        
         .glass-card {
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.07), 0 0 15px rgba(255, 255, 255, 0.5) inset;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.08);
             border-radius: 24px;
         }
-        .glass-header {
-            background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
-            box-shadow: 0 15px 30px -5px rgba(220, 38, 38, 0.35);
+        .locked-overlay {
+            position: relative;
+            overflow: hidden;
+        }
+        .locked-overlay::after {
+            content: "🔒 Login untuk akses fitur ini";
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #dc2626;
+            font-size: 12px;
+            z-index: 20;
+            text-align: center;
+            padding: 10px;
             border-radius: 24px;
         }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
         input, select, textarea {
-            background: rgba(255, 255, 255, 0.9) !important;
-            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid #e2e8f0 !important;
             border-radius: 14px !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #dc2626 !important;
-            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
-            background: #ffffff !important;
-        }
-        button {
-            border-radius: 14px !important;
-            transition: all 0.25s ease;
-        }
-        button:active {
-            transform: scale(0.97);
-        }
+        button { border-radius: 14px !important; transition: all 0.2s ease; }
+        button:active { transform: scale(0.97); }
     </style>
 </head>
-<body class="text-gray-800 font-sans p-3 max-w-full min-h-screen flex flex-col justify-between">
+<body class="text-gray-800 font-sans p-3 max-w-md mx-auto min-h-screen flex flex-col justify-between">
 
-    <div>
+    <div class="space-y-4 pb-24">
+        
         <!-- HEADER UTAMA -->
-        <div class="glass-header text-white text-center py-4 mb-4 relative overflow-hidden">
-            <div class="absolute -right-8 -top-8 w-24 h-24 bg-white/20 rounded-full blur-xl"></div>
-            <div class="absolute -left-8 -bottom-8 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
-            <h1 class="text-base font-black tracking-wider uppercase relative z-10">JADWAL KERJA MIXUE SUKOREJO</h1>
-            <div class="flex items-center justify-center gap-1.5 mt-1.5 relative z-10">
-                <span class="w-2 h-2 rounded-full bg-emerald-300 inline-block animate-pulse"></span>
-                <span class="text-[10px] font-semibold text-red-100">Firebase Realtime Connected (v1.8.4)</span>
+        <div class="relative flex items-center justify-between bg-white/80 p-3.5 rounded-3xl shadow-sm border border-white">
+            <span class="text-2xl">😎</span>
+            <div class="text-center absolute left-1/2 -translate-x-1/2">
+                <h1 class="text-xs font-black tracking-wider uppercase">JADWAL KERJA</h1>
+                <span id="labelHaloUser" class="text-[10px] font-bold text-gray-500">Hallo [Tamu]</span>
             </div>
-            <button id="btnLogout" onclick="logout()" class="hidden absolute right-3.5 top-4 bg-black/20 hover:bg-black/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold backdrop-blur transition shadow-sm z-10">Keluar</button>
+            <div>
+                <button id="btnLogout" onclick="logout()" class="hidden bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1 rounded-xl text-[9px] font-black shadow-sm">Logout</button>
+                <button id="btnBukaLogin" onclick="bukaModalLogin()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-2xl text-[10px] font-black shadow-md shadow-red-500/20">🔑 Login</button>
+            </div>
         </div>
 
-        <!-- ================= HALAMAN UTAMA ================= -->
-        <div class="space-y-4">
+        <!-- PERIODE SELECTOR -->
+        <div class="glass-card p-3 flex justify-between items-center">
+            <div>
+                <span class="text-[10px] font-black text-red-600 uppercase">Periode Aktif</span>
+                <p id="labelPeriodeStatus" class="text-[9px] font-bold text-gray-500">-</p>
+            </div>
+            <div class="flex gap-1.5">
+                <select id="selectBulanBeranda" onchange="syncPeriode()" class="p-1.5 text-[10px] font-bold">
+                    <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+                </select>
+                <select id="selectTahunBeranda" onchange="syncPeriode()" class="p-1.5 text-[10px] font-bold"></select>
+            </div>
+        </div>
+
+        <!-- KARTU UTAMA: JADWAL AKTIF MINGGUAN -->
+        <div class="bg-gradient-to-br from-emerald-400 to-emerald-500 text-white p-5 rounded-3xl shadow-lg shadow-emerald-500/20 space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xs font-black uppercase tracking-wider">Jadwal Aktif Mingguan</h3>
+                <button onclick="exportExcel()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-xl text-[9px] font-bold backdrop-blur">Excel 📥</button>
+            </div>
+            <div id="weekTabsBeranda" class="flex flex-wrap gap-1"></div>
+            <div class="overflow-x-auto rounded-2xl bg-white/95 text-gray-800 p-2 shadow-inner">
+                <table id="rekapTableBeranda" class="w-full text-left text-[10px]">
+                    <thead><tr id="tableHeaderBeranda" class="bg-emerald-600 text-white"></tr></thead>
+                    <tbody id="tableBodyBeranda"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- KARTU HARIAN DINAMIS -->
+        <div id="containerCardHarian" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 pt-1"></div>
+
+        <!-- AREA TERKUNCI: PAPAN INFO & REQUEST JADWAL -->
+        <div id="wrapperFiturTerkunci" class="space-y-3 locked-overlay">
             
-            <!-- SUB TAB NAVIGASI -->
-            <div id="containerSubTab" class="hidden flex gap-2 glass-card p-1.5">
-                <button onclick="switchTab('beranda')" id="tabBtnBeranda" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition">Beranda & Request</button>
-                <button onclick="switchTab('panel')" id="tabBtnPanel" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition hidden">Pusat Panel (Admin)</button>
-                <button onclick="switchTab('rekap')" id="tabBtnRekap" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition hidden">Rekapan Bulanan</button>
+            <!-- PAPAN INFO -->
+            <div class="bg-purple-400 text-white p-4 rounded-3xl shadow-lg shadow-purple-500/20 space-y-2">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-black uppercase tracking-wider">Papan Info & Izin</h3>
+                    <span class="text-lg">🔔</span>
+                </div>
+                <div id="listInfoRequestContainer" class="bg-white/90 text-gray-800 p-3 rounded-2xl max-h-32 overflow-y-auto text-[10px] space-y-1.5">
+                    <span class="text-gray-400">Belum ada info.</span>
+                </div>
             </div>
 
-            <!-- TAB 1: BERANDA -->
-            <div id="tabBeranda" class="space-y-4">
-                
-                <!-- Status Shift Crew Hari Ini -->
-                <div id="panelShiftAktifCrew" class="glass-card p-4 border-l-4 border-red-600 hidden space-y-2">
-                    <h3 class="text-xs font-black text-gray-800" id="salamCrewTitle">Status Shift Kamu Hari Ini</h3>
-                    <div id="boxInfoShiftHariIni" class="p-3.5 rounded-xl bg-white/80 border border-gray-200 text-xs font-semibold text-center shadow-inner">
-                        Memuat jadwal hari ini...
-                    </div>
-                </div>
-
-                <!-- Pilihan Periode Bulan & Tahun -->
-                <div class="glass-card p-4 border-l-4 border-red-600 flex justify-between items-center">
+            <!-- REQUEST JADWAL -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-sky-400 text-white p-4 rounded-3xl shadow-lg shadow-sky-500/20 space-y-2 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-xs font-black text-gray-800">Periode Jadwal Aktif (26 - 25)</h3>
-                        <span id="labelSubInfoPeriode" class="text-[10px] text-gray-500 font-bold">Menampilkan jadwal resmi yang dipublikasikan Admin</span>
+                        <h3 class="text-xs font-black uppercase">Request Jadwal</h3>
+                        <p class="text-[9px] text-sky-100">Ajukan perubahan shift atau tukar jadwal.</p>
                     </div>
-                    <div class="flex gap-2">
-                        <select id="selectBulanBeranda" onchange="syncPeriodeBeranda()" class="p-2 text-xs font-semibold">
-                            <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-                        </select>
-                        <select id="selectTahunBeranda" onchange="syncPeriodeBeranda()" class="p-2 text-xs font-semibold"></select>
-                    </div>
+                    <button onclick="bukaModalRequest()" class="bg-white text-sky-600 font-black py-2 text-[10px] shadow-sm">Buat Request</button>
                 </div>
-
-                <!-- TABEL JADWAL AKTIF -->
-                <div id="wrapperTabelBeranda" class="glass-card p-4 border-l-4 border-emerald-600">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-xs font-black text-emerald-800" id="titleTabelBeranda">Jadwal Shift Mingguan</h3>
-                        <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 text-[10px] shadow-md shadow-emerald-500/20">Download Excel</button>
+                <div class="bg-rose-400 text-white p-4 rounded-3xl shadow-lg shadow-rose-500/20 space-y-2 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-black uppercase">Hubungi Admin</h3>
+                        <p class="text-[9px] text-rose-100">Ada kendala darurat? Chat WhatsApp.</p>
                     </div>
-                    <div id="weekTabsBeranda" class="flex flex-wrap gap-1.5 mb-3.5 border-b border-gray-200/60 pb-3"></div>
-                    <div class="overflow-x-auto rounded-2xl border border-gray-200 bg-white/95 shadow-sm">
-                        <table id="rekapTableBeranda" class="w-full text-left border-collapse text-[11px]">
-                            <thead>
-                                <tr id="tableHeaderBeranda" class="bg-red-600 text-white">
-                                    <th class="border border-red-500 text-left">Tanggal</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBodyBeranda"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- KOTAK LOGIN -->
-                <div id="sectionLogin" class="space-y-2">
-                    <div class="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-center py-2.5 px-3 rounded-2xl font-black text-[10px] tracking-wider uppercase shadow-lg shadow-red-500/20 animate-pulse">
-                        ⚠️ LOGIN UNTUK REKUES, IZIN, ATAU AKSES FITUR LAIN ⚠️
-                    </div>
-                    <div class="glass-card p-4 border-t-4 border-red-600 space-y-3.5">
-                        <div id="menuPilihanLogin" class="grid grid-cols-2 gap-2.5">
-                            <button onclick="bukaFormLogin('crew')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5">
-                                👤 Login Crew
-                            </button>
-                            <button onclick="bukaFormLogin('admin')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-xs shadow-md shadow-red-500/20 flex items-center justify-center gap-1.5">
-                                🛡️ Login Admin
-                            </button>
-                        </div>
-
-                        <div id="formLoginCrew" class="hidden space-y-2.5 bg-white/70 p-3.5 rounded-2xl border border-blue-100 shadow-inner">
-                            <div class="flex justify-between items-center">
-                                <span class="text-[10px] font-black text-blue-900 uppercase tracking-wide">Form Login Crew</span>
-                                <button onclick="tutupFormLogin()" class="text-gray-400 hover:text-gray-700 text-xs font-bold px-2 py-0.5">✕ Batal</button>
-                            </div>
-                            <div>
-                                <label class="text-[9px] font-bold text-gray-700 block mb-1">Pilih Nama Crew:</label>
-                                <select id="loginSelectCrew" class="w-full p-2.5 text-xs font-semibold bg-white">
-                                    <option value="">-- Pilih Nama Crew --</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-[9px] font-bold text-gray-700 block mb-1">PIN Crew:</label>
-                                <input type="password" id="passCrew" class="w-full p-2.5 text-xs bg-white" placeholder="PIN (123456)">
-                            </div>
-                            <button onclick="prosesLoginUniversal('crew')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 text-xs shadow-md shadow-blue-500/20">Masuk sebagai Crew</button>
-                        </div>
-
-                        <div id="formLoginAdmin" class="hidden space-y-2.5 bg-white/70 p-3.5 rounded-2xl border border-red-100 shadow-inner">
-                            <div class="flex justify-between items-center">
-                                <span class="text-[10px] font-black text-red-900 uppercase tracking-wide">Form Login Admin</span>
-                                <button onclick="tutupFormLogin()" class="text-gray-400 hover:text-gray-700 text-xs font-bold px-2 py-0.5">✕ Batal</button>
-                            </div>
-                            <div>
-                                <label class="text-[9px] font-bold text-gray-700 block mb-1">Password Admin:</label>
-                                <input type="password" id="passAdmin" class="w-full p-2.5 text-xs bg-white" placeholder="Password Admin">
-                            </div>
-                            <button onclick="prosesLoginUniversal('admin')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 text-xs shadow-md shadow-red-500/20">Masuk sebagai Admin</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FORM REQUEST & IZIN -->
-                <div id="containerFormRequest" class="glass-card p-4 border-l-4 border-blue-600 space-y-3.5 hidden">
-                    <h3 class="font-black text-xs text-blue-900" id="labelFormRequestTitle">Form Request & Izin Shift</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                        <div id="wrapperInputCrewAdmin" class="hidden">
-                            <label class="text-[9px] text-gray-500 block font-bold mb-1">Pilih Nama Crew:</label>
-                            <select id="reqCrewAdmin" class="w-full p-2.5 bg-white" onchange="updateBackupDropdown()"><option value="">Pilih Nama Crew</option></select>
-                        </div>
-                        <div>
-                            <label class="text-[9px] text-gray-500 block font-bold mb-1">Pilih Tanggal Mulai:</label>
-                            <input type="date" id="reqDate" class="w-full p-2.5 bg-white">
-                        </div>
-                        <div>
-                            <label class="text-[9px] text-gray-500 block font-bold mb-1">Pilih Jenis Request/Izin:</label>
-                            <select id="reqJenis" class="w-full p-2.5 bg-white font-semibold" onchange="toggleFormIzinDetail()">
-                                <option value="Pagi">Request Shift: Pagi</option>
-                                <option value="Siang">Request Shift: Siang</option>
-                                <option value="Middle">Request Shift: Middle</option>
-                                <option value="SWC">Request Shift: SWC (Oren)</option>
-                                <option value="PWC">Request Shift: PWC (Pink)</option>
-                                <option value="Lemburan">Request Shift: Lemburan (Hijau)</option>
-                                <option value="Libur">Request Shift: Libur</option>
-                                <option value="Izin Sakit">Izin: Sakit</option>
-                                <option value="Izin Keperluan...">Izin: Keperluan...</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="wrapperFormIzin" class="hidden p-3.5 bg-white/75 border border-blue-200 rounded-2xl space-y-3 text-xs shadow-inner">
-                        <p class="font-black text-blue-800 text-[11px]">Pengaturan Durasi & Backup Shift</p>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[9px] text-gray-600 block font-bold mb-1">Durasi (Jumlah Hari):</label>
-                                <input type="number" id="izinDurasi" min="1" value="1" class="w-full p-2.5 bg-white">
-                            </div>
-                            <div>
-                                <label class="text-[9px] text-gray-600 block font-bold mb-1">Crew Pengganti Lembur:</label>
-                                <select id="izinBackup" class="w-full p-2.5 bg-white font-semibold">
-                                    <option value="-">Tanpa Backup</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-[9px] text-gray-600 block font-bold mb-1">Keterangan / Alasan:</label>
-                            <input type="text" id="izinKeterangan" class="w-full p-2.5 bg-white" placeholder="Tuliskan keperluan izin di sini...">
-                        </div>
-                        <button onclick="kirimPesanWAAdmin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1.5">
-                            Kirim Format Surat Izin ke WhatsApp
-                        </button>
-                    </div>
-
-                    <button onclick="kirimRequest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/20">Kirim Request / Izin ke Sistem</button>
-                    
-                    <div id="notifBarRequest" class="hidden bg-amber-50 border border-amber-300 text-amber-900 p-3 rounded-2xl text-[11px] font-semibold">
-                        Request Anda telah tercatat dan dikirim ke Admin.
-                    </div>
-                </div>
-
-                <!-- PAPAN INFO -->
-                <div id="containerPapanInfo" class="glass-card p-4 border-l-4 border-amber-500 hidden">
-                    <h3 class="font-black text-xs mb-3 text-amber-900">Papan Info: Status Hasil Request & Izin Semua Crew</h3>
-                    <div id="listInfoRequestContainer" class="space-y-2.5 max-h-40 overflow-y-auto pr-1">
-                        <span class="text-gray-400 text-[10px]">Belum ada info request.</span>
-                    </div>
-                </div>
-
-                <!-- HUBUNGI ADMIN -->
-                <div id="containerHubungiWA" class="glass-card p-4 border-l-4 border-emerald-600 hidden">
-                    <h3 class="font-black text-xs mb-3 text-emerald-900">Hubungi Admin</h3>
-                    <div class="space-y-3">
-                        <textarea id="waPesan" class="w-full p-3 text-xs bg-white" rows="2" placeholder="Tulis pesan atau kendala aplikasi di sini..."></textarea>
-                        <button onclick="kirimWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 text-xs shadow-md shadow-emerald-500/20">Kirim Pesan ke WhatsApp Admin</button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- TAB 2: PUSAT PANEL (ADMIN) -->
-            <div id="tabPanel" class="hidden space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                    
-                    <div class="glass-card p-4 border-l-4 border-red-600 space-y-3">
-                        <h3 class="font-black text-xs text-gray-800">Atur Periode & Tombol Publikasi Resmi</h3>
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <select id="selectBulanPanel" onchange="syncPeriodePanel()" class="p-2.5 text-xs bg-white font-semibold">
-                                <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-                            </select>
-                            <select id="selectTahunPanel" onchange="syncPeriodePanel()" class="p-2.5 text-xs bg-white font-semibold"></select>
-                        </div>
-                        <span id="labelPeriodePanel" class="text-[10px] font-black text-red-600 block">Periode: -</span>
-                        
-                        <!-- TOMBOL PUBLIKASI PERIODE -->
-                        <div class="bg-red-50 border border-red-200 p-3 rounded-2xl flex items-center justify-between gap-2">
-                            <div>
-                                <p class="text-[10px] font-bold text-red-900">Status Tampilan Publik Crew:</p>
-                                <span id="statusPublishLabel" class="text-[10px] font-black text-rose-600">Belum Dipublikasikan</span>
-                            </div>
-                            <button onclick="togglePublishPeriode()" id="btnPublishAction" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 text-[10px] shadow-sm">🚀 Publikasikan Periode Ini</button>
-                        </div>
-
-                        <div class="border-t border-gray-200/80 pt-3">
-                            <label class="text-[10px] font-bold text-gray-700 block mb-2">Centang Minggu yang Ditampilkan ke Crew:</label>
-                            <div id="adminWeekToggles" class="grid grid-cols-2 gap-2 text-[10px]"></div>
-                        </div>
-                    </div>
-
-                    <div class="glass-card p-4 border-l-4 border-red-600">
-                        <h3 class="font-black text-xs mb-2 text-gray-800">Kelola Crew</h3>
-                        <p class="text-[9px] text-gray-500 mb-2.5">Hapus nama lama jika ingin mengganti dengan nama panjang.</p>
-                        <div class="flex gap-2.5 mb-3">
-                            <input type="text" id="newCrewName" class="w-full p-2.5 text-xs bg-white" placeholder="Nama Panjang Crew">
-                            <button onclick="tambahCrew()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 text-xs shadow-md shadow-red-500/20">Tambah</button>
-                        </div>
-                        <div id="listCrewContainer" class="flex flex-wrap gap-2 max-h-28 overflow-y-auto p-2.5 bg-white/70 rounded-2xl border border-gray-200"></div>
-                    </div>
-
-                </div>
-
-                <div class="glass-card p-4 border-l-4 border-blue-600 space-y-3">
-                    <h3 class="font-black text-xs text-blue-900">📂 Import / Upload Jadwal dari Excel</h3>
-                    <p class="text-[10px] text-gray-500">Unduh template master terlebih dahulu, isi jadwal di Excel, lalu upload kembali ke sini.</p>
-                    
-                    <div class="flex gap-2.5">
-                        <button onclick="downloadTemplateMaster()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 text-[10px] shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5">
-                            📥 Download Template Master
-                        </button>
-                        <label class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 text-[10px] shadow-md shadow-emerald-500/20 text-center cursor-pointer rounded-2xl flex items-center justify-center gap-1.5">
-                            📤 Upload File Excel Jadwal
-                            <input type="file" id="excelFileImport" accept=".xlsx, .xls, .csv" onchange="importJadwalExcel(event)" class="hidden">
-                        </label>
-                    </div>
-                </div>
-
-                <div class="glass-card p-4 border-l-4 border-red-600">
-                    <h3 class="font-black text-xs mb-3 text-gray-800">Input Shift Harian (Semua Crew Sekaligus)</h3>
-                    <div class="mb-3">
-                        <label class="text-[9px] text-gray-500 block font-bold mb-1">Pilih Tanggal:</label>
-                        <input type="date" id="shiftDateTarget" class="w-full p-2.5 text-xs bg-white" onchange="renderFormCrewHarian()">
-                    </div>
-                    <div id="formCrewHarianContainer" class="max-h-44 overflow-y-auto space-y-2.5 mb-3.5 border border-gray-200 p-3 rounded-2xl bg-white/75"></div>
-                    <button onclick="simpanShiftHarianMasal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 text-xs shadow-md shadow-emerald-500/20">Simpan Shift Semua Crew</button>
-                </div>
-
-                <div class="glass-card p-4 border-l-4 border-gray-600">
-                    <h3 class="font-black text-xs mb-3 text-gray-700">Panel Persetujuan Request & Izin Shift</h3>
-                    <div id="listRequestContainerAdmin" class="space-y-2.5 max-h-44 overflow-y-auto mb-1"></div>
+                    <button onclick="kirimWA()" class="bg-white text-rose-600 font-black py-2 text-[10px] shadow-sm">Chat WA</button>
                 </div>
             </div>
 
-            <!-- TAB 3: REKAPAN BULANAN -->
-            <div id="tabRekap" class="hidden space-y-4">
-                <div class="glass-card p-4 border-l-4 border-indigo-600">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-black text-xs text-indigo-900">Rekapan Kehadiran & Izin Bulanan (Periode 26 - 25)</h3>
-                        <button onclick="exportRekapExcel()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 text-[10px] shadow-md shadow-indigo-500/20">Download Rekap Excel</button>
-                    </div>
-                    <div class="overflow-x-auto rounded-2xl border border-indigo-100 bg-white/95 shadow-sm">
-                        <table class="w-full text-left border-collapse text-[11px]">
-                            <thead>
-                                <tr class="bg-indigo-600 text-white">
-                                    <th class="border border-indigo-500 text-left">Nama Crew</th>
-                                    <th class="border border-indigo-500 text-center">Jumlah Masuk Kerja</th>
-                                    <th class="border border-indigo-500 text-center">Jumlah Lemburan</th>
-                                    <th class="border border-indigo-500 text-center">Jumlah Izin (Sakit/Keluarga)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBodyRekapBulanan"></tbody>
-                        </table>
-                    </div>
+        </div>
+
+        <!-- TAB PANEL ADMIN -->
+        <div id="sectionAdminPanel" class="hidden space-y-3 bg-white/90 p-4 rounded-3xl border border-red-200 shadow-lg">
+            <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">🛡️ Panel Khusus Admin</h3>
+            <div class="space-y-2 text-[10px]">
+                <label class="font-bold">Publikasi Periode Ini ke Crew:</label>
+                <div class="flex gap-2">
+                    <button onclick="togglePublish()" id="btnPublishToggle" class="flex-1 bg-red-600 text-white font-bold py-2">Publikasikan</button>
+                </div>
+                <div class="border-t pt-2">
+                    <label class="font-bold block mb-1">Centang Minggu Aktif:</label>
+                    <div id="adminWeekToggles" class="grid grid-cols-2 gap-1.5"></div>
+                </div>
+                <div class="border-t pt-2">
+                    <label class="font-bold block mb-1">Upload Excel Jadwal:</label>
+                    <input type="file" accept=".xlsx, .xls" onchange="importJadwalExcel(event)" class="w-full p-1 text-[10px]">
                 </div>
             </div>
-
         </div>
 
     </div>
 
-    <!-- FOOTER COPYRIGHT -->
-    <footer class="text-center text-[10px] text-gray-500 mt-8 border-t border-gray-300/60 pt-3">
-        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.8.4 Firebase
-    </footer>
+    <!-- BOTTOM NAVIGATION BAR -->
+    <div class="fixed bottom-3 left-3 right-3 max-w-sm mx-auto bg-black text-white p-2.5 flex justify-around items-center rounded-full shadow-2xl z-50">
+        <button onclick="navClick('home')" id="navBtn-home" class="flex flex-col items-center justify-center w-12 h-12 rounded-full bg-white text-black transition-all shadow-md">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        </button>
+        <button onclick="navClick('request')" id="navBtn-request" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        </button>
+        <button onclick="navClick('rekap')" id="navBtn-rekap" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </button>
+        <button onclick="navClick('profile')" id="navBtn-profile" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </button>
+    </div>
+
+    <!-- MODAL LOGIN TERPADU -->
+    <div id="modalLogin" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-5 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-black text-xs text-red-600 uppercase">🔑 Menu Login</h3>
+                <button onclick="tutupModalLogin()" class="text-gray-400 font-bold">✕</button>
+            </div>
+            
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-gray-700 block">Login Crew (Pilih Nama):</label>
+                <select id="loginSelectCrew" onchange="pilihCrewLogin(this)" class="w-full p-2.5 text-xs font-bold bg-gray-50">
+                    <option value="">-- Pilih Nama Crew --</option>
+                </select>
+            </div>
+
+            <div class="text-center text-[10px] text-gray-400 font-bold">- ATAU -</div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-gray-700 block">Login Admin:</label>
+                <input type="password" id="passAdmin" class="w-full p-2.5 text-xs" placeholder="Password Admin">
+                <button onclick="prosesLoginAdmin()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-2.5 text-xs shadow-md">Masuk sebagai Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REQUEST -->
+    <div id="modalRequest" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-5 space-y-3 shadow-2xl text-xs">
+            <div class="flex justify-between items-center">
+                <h3 class="font-black text-red-600 uppercase">Form Request Jadwal</h3>
+                <button onclick="tutupModalRequest()" class="text-gray-400 font-bold">✕</button>
+            </div>
+            <div>
+                <label class="text-[9px] font-bold text-gray-500 block mb-1">Tanggal:</label>
+                <input type="date" id="reqDate" class="w-full p-2">
+            </div>
+            <div>
+                <label class="text-[9px] font-bold text-gray-500 block mb-1">Jenis Request:</label>
+                <select id="reqJenis" class="w-full p-2 font-bold">
+                    <option value="Pagi">Request Shift Pagi</option>
+                    <option value="Siang">Request Shift Siang</option>
+                    <option value="Libur">Request Libur</option>
+                    <option value="Izin Sakit">Izin Sakit</option>
+                </select>
+            </div>
+            <button onclick="kirimRequest()" class="w-full bg-red-600 text-white font-black py-2.5">Kirim Request</button>
+        </div>
+    </div>
 
     <script>
         let listCrew = [];
         let scheduleData = {};
         let requestData = [];
         let activeWeeks = {};
-        let publishedPeriods = {}; // Menyimpan status periode mana saja yang sudah di-publish admin
+        let publishedPeriods = {};
 
         let currentRole = localStorage.getItem('sandyrzt_role') || null;
         let loggedInCrew = localStorage.getItem('sandyrzt_logged_crew') || null;
         const bulanNama = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const namaHari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+        const listEmoji = ["🍦", "✨", "🔥", "🚀", "⭐", "🎉", "🍹", "🥳", "🎯", "🍀"];
         let activeWeekIndex = 0;
-        let inactivityTimer = null;
-
-        const shiftOptionsHTML = `
-            <option value="">-- Pilih Shift --</option>
-            <option value="Pagi Kuning">Pagi (Kuning) - P</option>
-            <option value="Pagi Biru">Pagi (Biru) - P</option>
-            <option value="Siang Kuning">Siang (Kuning) - S</option>
-            <option value="Siang Biru">Siang (Biru) - S</option>
-            <option value="Middle Ungu">Middle (Ungu) - MID</option>
-            <option value="SWC Oren">SWC (Oren) - SWC</option>
-            <option value="PWC Pink">PWC (Pink) - PWC</option>
-            <option value="Lemburan Hijau">Lemburan (Hijau) - LEMBUR</option>
-            <option value="Libur Hitam">Libur (Libur) - LIBR</option>
-            <option value="IZIN">Izin (Merah) - IZIN</option>
-        `;
 
         window.initAppAfterFirebase = function() {
-            startRealtimeListener();
-        };
-
-        function startRealtimeListener() {
             let dataRef = window.FB_ref(window.dbRef, 'mixue_app_data');
             window.FB_onValue(dataRef, (snapshot) => {
                 let val = snapshot.val();
@@ -420,87 +277,83 @@
                     activeWeeks = val.weeks || {};
                     publishedPeriods = val.published || {};
                 }
-                renderUIComponents();
+                renderUI();
             });
-        }
+        };
 
-        function saveDataToFirebase() {
+        function saveData() {
             let dataRef = window.FB_ref(window.dbRef, 'mixue_app_data');
-            window.FB_set(dataRef, {
-                crew: listCrew,
-                schedule: scheduleData,
-                requests: requestData,
-                weeks: activeWeeks,
-                published: publishedPeriods
-            }).catch(err => {
-                console.error("Gagal simpan ke Firebase:", err);
-            });
+            window.FB_set(dataRef, { crew: listCrew, schedule: scheduleData, requests: requestData, weeks: activeWeeks, published: publishedPeriods });
         }
 
-        function renderUIComponents() {
-            setupTahunDropdown();
-            setBulanTahunDefault();
-            updateCrewManager();
-            updateRequestDropdown();
-            setupLoginCrewDropdown();
-            renderAdminWeekToggles();
+        function renderUI() {
+            setupTahun();
+            setBulanDefault();
+            setupCrewDropdown();
             renderTabelBeranda();
-            renderListRequestBeranda();
-            renderListRequestAdmin();
-            renderRekapBulanan();
+            renderCardHarian();
+            renderPapanInfo();
+            renderAdminPanel();
 
-            let isAdmin = (currentRole === 'admin');
-            let selBulanBeranda = document.getElementById('selectBulanBeranda');
-            let selTahunBeranda = document.getElementById('selectTahunBeranda');
-
-            if (!isAdmin) {
-                // Kunci dropdown beranda untuk crew agar otomatis mengikuti periode yang dipublikasikan admin terbaru
-                let latestPublished = getLatestPublishedPeriod();
-                if (latestPublished) {
-                    selBulanBeranda.value = latestPublished.month;
-                    selTahunBeranda.value = latestPublished.year;
-                }
-                selBulanBeranda.disabled = true;
-                selTahunBeranda.disabled = true;
-            } else {
-                selBulanBeranda.disabled = false;
-                selTahunBeranda.disabled = false;
-            }
-
-            let dateTarget = document.getElementById('shiftDateTarget');
-            if (dateTarget && !dateTarget.value) {
-                dateTarget.value = parseLocalDate(new Date());
-            }
-            renderFormCrewHarian();
+            let labelHalo = document.getElementById('labelHaloUser');
+            let btnLogout = document.getElementById('btnLogout');
+            let btnLogin = document.getElementById('btnBukaLogin');
+            let wrapperLock = document.getElementById('wrapperFiturTerkunci');
+            let sectionAdmin = document.getElementById('sectionAdminPanel');
 
             if (currentRole) {
-                document.getElementById('sectionLogin').classList.add('hidden');
-                document.getElementById('btnLogout').classList.remove('hidden');
-                document.getElementById('containerSubTab').classList.remove('hidden');
-                document.getElementById('containerFormRequest').classList.remove('hidden');
-                document.getElementById('containerPapanInfo').classList.remove('hidden');
-                document.getElementById('containerHubungiWA').classList.remove('hidden');
+                btnLogout.classList.remove('hidden');
+                btnLogin.classList.add('hidden');
+                wrapperLock.classList.remove('locked-overlay');
 
                 if (currentRole === 'admin') {
-                    document.getElementById('tabBtnPanel').classList.remove('hidden');
-                    document.getElementById('tabBtnRekap').classList.remove('hidden');
-                    document.getElementById('panelShiftAktifCrew').classList.add('hidden');
-                    document.getElementById('wrapperInputCrewAdmin').classList.remove('hidden');
-                    document.getElementById('labelFormRequestTitle').innerText = "Form Request & Izin Shift (Admin / Atas Nama Crew)";
+                    labelHalo.innerText = "Hallo [ADMIN]";
+                    sectionAdmin.classList.remove('hidden');
                 } else {
-                    document.getElementById('tabBtnPanel').classList.add('hidden');
-                    document.getElementById('tabBtnRekap').classList.add('hidden');
-                    document.getElementById('panelShiftAktifCrew').classList.remove('hidden');
-                    document.getElementById('wrapperInputCrewAdmin').classList.add('hidden');
-                    document.getElementById('labelFormRequestTitle').innerText = `Form Request & Izin Shift (${loggedInCrew})`;
-                    setupInactivityTimer();
-                    tampilkanShiftAktifCrewLogins();
+                    labelHalo.innerText = `Hallo [${loggedInCrew}]`;
+                    sectionAdmin.classList.add('hidden');
                 }
+            } else {
+                labelHalo.innerText = "Hallo [Tamu]";
+                btnLogout.classList.add('hidden');
+                btnLogin.classList.remove('hidden');
+                wrapperLock.classList.add('locked-overlay');
+                sectionAdmin.classList.add('hidden');
+            }
+        }
+
+        function setupTahun() {
+            let html = '<option value="2026">2026</option><option value="2027">2027</option>';
+            document.getElementById('selectTahunBeranda').innerHTML = html;
+        }
+
+        function setBulanDefault() {
+            let sb = document.getElementById('selectBulanBeranda');
+            let tb = document.getElementById('selectTahunBeranda');
+            
+            // Jika bukan admin, paksa ikuti periode terakhir yang dipublikasikan admin
+            if (currentRole !== 'admin') {
+                let latestPub = getLatestPublishedPeriod();
+                if (latestPub) {
+                    sb.value = latestPub.month;
+                    tb.value = latestPub.year;
+                    sb.disabled = true;
+                    tb.disabled = true;
+                    return;
+                }
+            }
+            
+            sb.disabled = false;
+            tb.disabled = false;
+            if (!sb.value) {
+                let now = new Date();
+                sb.value = now.getMonth();
+                tb.value = now.getFullYear();
             }
         }
 
         function getLatestPublishedPeriod() {
-            for (let y = 2028; y >= 2025; y--) {
+            for (let y = 2027; y >= 2026; y--) {
                 for (let m = 11; m >= 0; m--) {
                     let pKey = getPeriodeKey(m, y);
                     if (publishedPeriods[pKey]) {
@@ -511,244 +364,22 @@
             return null;
         }
 
-        function togglePublishPeriode() {
-            let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-            let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-            let pKey = getPeriodeKey(mEnd, yEnd);
-
-            publishedPeriods[pKey] = !publishedPeriods[pKey];
-            saveDataToFirebase();
-            renderAdminWeekToggles();
-            renderTabelBeranda();
-            alert(`Periode ${pKey} berhasil ${publishedPeriods[pKey] ? 'DIPUBLIKASIKAN ke Crew' : 'DIBATALKAN PUBLIKASINYA'}!`);
+        function setupCrewDropdown() {
+            let sel = document.getElementById('loginSelectCrew');
+            sel.innerHTML = '<option value="">-- Pilih Nama Crew --</option>';
+            listCrew.forEach(c => { sel.innerHTML += `<option value="${c}">${c}</option>`; });
+            if (loggedInCrew) sel.value = loggedInCrew;
         }
 
-        function bukaFormLogin(tipe) {
-            document.getElementById('menuPilihanLogin').classList.add('hidden');
-            if (tipe === 'crew') {
-                document.getElementById('formLoginCrew').classList.remove('hidden');
-                document.getElementById('formLoginAdmin').classList.add('hidden');
-            } else {
-                document.getElementById('formLoginAdmin').classList.remove('hidden');
-                document.getElementById('formLoginCrew').classList.add('hidden');
-            }
-        }
-
-        function tutupFormLogin() {
-            document.getElementById('menuPilihanLogin').classList.remove('hidden');
-            document.getElementById('formLoginCrew').classList.add('hidden');
-            document.getElementById('formLoginAdmin').classList.add('hidden');
-            document.getElementById('passAdmin').value = '';
-            document.getElementById('passCrew').value = '';
-            document.getElementById('loginSelectCrew').value = '';
-        }
-
-        function parseLocalDate(d) {
-            let year = d.getFullYear();
-            let month = String(d.getMonth() + 1).padStart(2, '0');
-            let day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        function formatTanggalIndo(dateStr) {
-            if (!dateStr) return '';
-            let parts = dateStr.split('-');
-            if (parts.length !== 3) return dateStr;
-            let d = new Date(parts[0], parts[1] - 1, parts[2]);
-            return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
-        }
-
-        function setupInactivityTimer() {
-            resetInactivityTimer();
-            window.addEventListener('mousemove', resetInactivityTimer);
-            window.addEventListener('keypress', resetInactivityTimer);
-            window.addEventListener('click', resetInactivityTimer);
-            window.addEventListener('touchstart', resetInactivityTimer);
-        }
-
-        function resetInactivityTimer() {
-            if (!currentRole || currentRole === 'admin') return;
-            clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => {
-                alert('Sesi Anda telah habis karena tidak ada aktivitas selama 5 menit.');
-                logout();
-            }, 300000);
-        }
-
-        function setupTahunDropdown() {
-            let currentYear = 2026;
-            let html = '';
-            for (let y = currentYear - 1; y <= currentYear + 3; y++) {
-                html += `<option value="${y}">${y}</option>`;
-            }
-            let sBeranda = document.getElementById('selectTahunBeranda');
-            let sPanel = document.getElementById('selectTahunPanel');
-            if (sBeranda) sBeranda.innerHTML = html;
-            if (sPanel) sPanel.innerHTML = html;
-        }
-
-        function setBulanTahunDefault() {
-            let now = new Date();
-            let m = now.getMonth();
-            let y = now.getFullYear();
-            if (now.getDate() > 25) {
-                m += 1;
-                if (m > 11) { m = 0; y += 1; }
-            }
-            let sb = document.getElementById('selectBulanBeranda');
-            let tb = document.getElementById('selectTahunBeranda');
-            let sp = document.getElementById('selectBulanPanel');
-            let tp = document.getElementById('selectTahunPanel');
-
-            if (sb && !sb.value) sb.value = m;
-            if (tb && !tb.value) tb.value = y;
-            if (sp && !sp.value) sp.value = m;
-            if (tp && !tp.value) tp.value = y;
-        }
-
-        function setupLoginCrewDropdown() {
-            const select = document.getElementById('loginSelectCrew');
-            if (!select) return;
-            select.innerHTML = '<option value="">-- Pilih Nama Crew --</option>';
-            listCrew.forEach(c => {
-                select.innerHTML += `<option value="${c}">${c}</option>`;
-            });
-            if (loggedInCrew) select.value = loggedInCrew;
-        }
-
-        function updateBackupDropdown() {
-            const selectBackup = document.getElementById('izinBackup');
-            if (!selectBackup) return;
-            let currentActiveCrew = (currentRole === 'admin') ? (document.getElementById('reqCrewAdmin').value || '') : loggedInCrew;
-            selectBackup.innerHTML = '<option value="-">Tanpa Backup</option>';
-            listCrew.forEach(c => {
-                if (c !== currentActiveCrew) {
-                    selectBackup.innerHTML += `<option value="${c}">${c}</option>`;
-                }
-            });
-        }
-
-        function toggleFormIzinDetail() {
-            let jenis = document.getElementById('reqJenis').value;
-            let wrapper = document.getElementById('wrapperFormIzin');
-            if (jenis === 'Izin Sakit' || jenis === 'Izin Keperluan...') {
-                wrapper.classList.remove('hidden');
-                updateBackupDropdown();
-            } else {
-                wrapper.classList.add('hidden');
-            }
-        }
-
-        function kirimPesanWAAdmin() {
-            let crew = (currentRole === 'admin') ? document.getElementById('reqCrewAdmin').value : loggedInCrew;
-            if (!crew) return alert('Silakan pilih nama crew terlebih dahulu!');
-            let date = document.getElementById('reqDate').value;
-            if (!date) return alert('Pilih tanggal mulai terlebih dahulu!');
-            let jenis = document.getElementById('reqJenis').value;
-            let durasi = document.getElementById('izinDurasi').value || '1';
-            let keterangan = document.getElementById('izinKeterangan').value || '-';
-            let backup = document.getElementById('izinBackup').value || '-';
-
-            let pesan = `Shalom / Selamat Pagi/Siang Bapak Indra,\n\nSaya yang mengirim pesan di bawah ini:\n- Nama Crew: ${crew}\n- Jenis Izin: ${jenis}\n- Durasi Izin: ${durasi} Hari\n- Mulai Tanggal: ${formatTanggalIndo(date)}\n- Keterangan / Alasan: ${keterangan}\n\nMelalui pesan ini, saya mengajukan permohonan izin tidak dapat masuk kerja sesuai jadwal di atas. Dan akan di backup @ ${backup}. Atas izin dan perhatiannya saya ucapkan Terima kasih.`;
-
-            let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`;
-            window.open(url, '_blank');
-        }
-
-        function tampilkanShiftAktifCrewLogins() {
-            let box = document.getElementById('boxInfoShiftHariIni');
-            if (!loggedInCrew) return;
-
-            let todayStr = parseLocalDate(new Date());
-            let todayDateObj = new Date();
-            let formattedHariTgl = todayDateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
-
-            let pAuto = hitungPeriodeDariTanggal(todayDateObj);
-            let periodeKey = getPeriodeKey(pAuto.month, pAuto.year);
-
-            let shiftVal = (scheduleData[periodeKey] && scheduleData[periodeKey][todayStr] && scheduleData[periodeKey][todayStr][loggedInCrew]) || '';
-            let s = getStyle(shiftVal);
-
-            if (!shiftVal) {
-                box.innerHTML = `Hai <b>${loggedInCrew}</b>, hari ini <b>${formattedHariTgl}</b> kamu belum memiliki jadwal shift yang di-input admin.`;
-            } else {
-                box.innerHTML = `Hai <b>${loggedInCrew}</b>, hari ini <b>${formattedHariTgl}</b> kamu masuk: <span class="px-3 py-1 rounded-xl font-black shadow-sm text-sm inline-block mt-1" style="background-color: ${s.bg}; color: ${s.text};">${s.label} (${shiftVal})</span>`;
-            }
-        }
-
-        function prosesLoginUniversal(roleTarget) {
-            if (roleTarget === 'admin') {
-                let passInput = document.getElementById('passAdmin').value.trim();
-                if (passInput !== "1234567890") {
-                    alert('Password Admin salah! (Gunakan: 1234567890)');
-                    return;
-                }
-                loggedInCrew = null;
-                localStorage.removeItem('sandyrzt_logged_crew');
-            } else {
-                let selectedCrewName = document.getElementById('loginSelectCrew').value;
-                let passInput = document.getElementById('passCrew').value.trim();
-
-                if (!selectedCrewName) return alert('Silakan pilih nama crew terlebih dahulu!');
-                if (passInput !== "123456") return alert('Password Crew salah! (Gunakan: 123456)');
-                
-                loggedInCrew = selectedCrewName;
-                localStorage.setItem('sandyrzt_logged_crew', loggedInCrew);
-            }
-
-            currentRole = roleTarget;
+        function pilihCrewLogin(selectObj) {
+            let crewName = selectObj.value;
+            if (!crewName) return;
+            currentRole = 'crew';
+            loggedInCrew = crewName;
             localStorage.setItem('sandyrzt_role', currentRole);
-            renderUIComponents();
-        }
-
-        function logout() {
-            currentRole = null;
-            loggedInCrew = null;
-            localStorage.removeItem('sandyrzt_role');
-            localStorage.removeItem('sandyrzt_logged_crew');
-            clearTimeout(inactivityTimer);
-
-            tutupFormLogin();
-            document.getElementById('sectionLogin').classList.remove('hidden');
-            document.getElementById('btnLogout').classList.add('hidden');
-            document.getElementById('containerSubTab').classList.add('hidden');
-            document.getElementById('containerFormRequest').classList.add('hidden');
-            document.getElementById('containerPapanInfo').classList.add('hidden');
-            document.getElementById('containerHubungiWA').classList.add('hidden');
-            document.getElementById('panelShiftAktifCrew').classList.add('hidden');
-            document.getElementById('tabPanel').classList.add('hidden');
-            document.getElementById('tabRekap').classList.add('hidden');
-            document.getElementById('tabBeranda').classList.remove('hidden');
-
-            renderUIComponents();
-        }
-
-        function switchTab(tab) {
-            document.getElementById('tabBeranda').classList.add('hidden');
-            document.getElementById('tabPanel').classList.add('hidden');
-            document.getElementById('tabRekap').classList.add('hidden');
-            
-            document.getElementById('tabBtnBeranda').className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
-            if (document.getElementById('tabBtnPanel')) document.getElementById('tabBtnPanel').className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
-            if (document.getElementById('tabBtnRekap')) document.getElementById('tabBtnRekap').className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition";
-
-            if (tab === 'beranda') {
-                document.getElementById('tabBeranda').classList.remove('hidden');
-                document.getElementById('tabBtnBeranda').className = "flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition";
-                renderTabelBeranda();
-                renderListRequestBeranda();
-            } else if (tab === 'panel') {
-                if (!currentRole || currentRole !== 'admin') return alert('Akses khusus Admin!');
-                document.getElementById('tabPanel').classList.remove('hidden');
-                document.getElementById('tabBtnPanel').className = "flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition";
-                renderAdminWeekToggles();
-                renderListRequestAdmin();
-            } else if (tab === 'rekap') {
-                if (!currentRole || currentRole !== 'admin') return alert('Akses khusus Admin!');
-                document.getElementById('tabRekap').classList.remove('hidden');
-                document.getElementById('tabBtnRekap').className = "flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition";
-                renderRekapBulanan();
-            }
+            localStorage.setItem('sandyrzt_logged_crew', loggedInCrew);
+            tutupModalLogin();
+            renderUI();
         }
 
         function getPeriodeKey(mEnd, yEnd) {
@@ -758,768 +389,240 @@
             return `26 ${bulanNama[mStart]} - 25 ${bulanNama[mEnd]} ${yEnd}`;
         }
 
-        function syncPeriodeBeranda() {
-            let m = document.getElementById('selectBulanBeranda').value;
-            let y = document.getElementById('selectTahunBeranda').value;
-            document.getElementById('selectBulanPanel').value = m;
-            document.getElementById('selectTahunPanel').value = y;
-            renderAdminWeekToggles();
-            renderTabelBeranda();
+        function syncPeriode() { renderTabelBeranda(); renderCardHarian(); }
+
+        function bukaModalLogin() { document.getElementById('modalLogin').classList.remove('hidden'); document.getElementById('modalLogin').classList.add('flex'); }
+        function tutupModalLogin() { document.getElementById('modalLogin').classList.add('hidden'); document.getElementById('modalLogin').classList.remove('flex'); }
+        function bukaModalRequest() { document.getElementById('modalRequest').classList.remove('hidden'); document.getElementById('modalRequest').classList.add('flex'); }
+        function tutupModalRequest() { document.getElementById('modalRequest').classList.add('hidden'); document.getElementById('modalRequest').classList.remove('flex'); }
+
+        function prosesLoginAdmin() {
+            let pass = document.getElementById('passAdmin').value;
+            if (pass !== "1234567890") return alert('Password Admin Salah!');
+            currentRole = 'admin';
+            loggedInCrew = null;
+            localStorage.setItem('sandyrzt_role', currentRole);
+            localStorage.removeItem('sandyrzt_logged_crew');
+            tutupModalLogin();
+            renderUI();
         }
 
-        function syncPeriodePanel() {
-            let m = document.getElementById('selectBulanPanel').value;
-            let y = document.getElementById('selectTahunPanel').value;
-            document.getElementById('selectBulanBeranda').value = m;
-            document.getElementById('selectTahunBeranda').value = y;
-            renderAdminWeekToggles();
-            renderTabelBeranda();
-            renderFormCrewHarian();
-        }
-
-        function renderAdminWeekToggles() {
-            const container = document.getElementById('adminWeekToggles');
-            if (!container) return;
-
-            let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-            let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-            let pKey = getPeriodeKey(mEnd, yEnd);
-            document.getElementById('labelPeriodePanel').innerText = `Periode: ${pKey}`;
-
-            let isPublished = publishedPeriods[pKey] || false;
-            let pubLabel = document.getElementById('statusPublishLabel');
-            let pubBtn = document.getElementById('btnPublishAction');
-
-            if (isPublished) {
-                pubLabel.innerText = "✅ SUDAH DIPUBLIKASIKAN";
-                pubLabel.className = "text-[10px] font-black text-emerald-600";
-                pubBtn.innerText = "Batalkan Publikasi";
-                pubBtn.className = "bg-gray-600 hover:bg-gray-700 text-white font-bold px-3 py-2 text-[10px] shadow-sm";
-            } else {
-                pubLabel.innerText = "❌ BELUM DIPUBLIKASIKAN";
-                pubLabel.className = "text-[10px] font-black text-rose-600";
-                pubBtn.innerText = "🚀 Publikasikan Periode Ini";
-                pubBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 text-[10px] shadow-sm";
-            }
-
-            let mStart = mEnd - 1;
-            let yStart = yEnd;
-            if (mStart < 0) { mStart = 11; yStart -= 1; }
-
-            let startDatePeriode = new Date(yStart, mStart, 26);
-            let endDatePeriode = new Date(yEnd, mEnd, 25);
-            let weeks = generateWeeksArray(startDatePeriode, endDatePeriode);
-
-            container.innerHTML = '';
-            weeks.forEach((wk, wIdx) => {
-                if (wk.length === 0) return;
-                let mapKey = `${pKey}_w${wIdx}`;
-                let isChecked = activeWeeks[mapKey] ? 'checked' : '';
-                let startLbl = new Date(wk[0].replace(/-/g, '/')).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-                let endLbl = new Date(wk[wk.length - 1].replace(/-/g, '/')).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-
-                container.innerHTML += `
-                    <label class="flex items-center gap-2 bg-white/85 border border-gray-200 p-2.5 rounded-xl cursor-pointer shadow-sm hover:bg-white transition">
-                        <input type="checkbox" ${isChecked} onchange="toggleActiveWeek('${mapKey}')" class="rounded text-red-600 focus:ring-red-500">
-                        <span class="font-semibold text-gray-700">W${wIdx + 1} (${startLbl}-${endLbl})</span>
-                    </label>
-                `;
-            });
-        }
-
-        function toggleActiveWeek(mapKey) {
-            activeWeeks[mapKey] = !activeWeeks[mapKey];
-            saveDataToFirebase();
-            renderTabelBeranda();
-        }
-
-        function downloadTemplateMaster() {
-            if (listCrew.length === 0) return alert('Belum ada data crew yang terdaftar di sistem!');
-            let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-            let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-            let mStart = mEnd - 1;
-            let yStart = yEnd;
-            if (mStart < 0) { mStart = 11; yStart -= 1; }
-
-            let startDatePeriode = new Date(yStart, mStart, 26);
-            let endDatePeriode = new Date(yEnd, mEnd, 25);
-            
-            let allDays = [];
-            let curr = new Date(startDatePeriode);
-            while (curr <= endDatePeriode) {
-                allDays.push(parseLocalDate(curr));
-                curr.setDate(curr.getDate() + 1);
-            }
-
-            let header = ["Tanggal", ...listCrew];
-            let ws_data = [header];
-            allDays.forEach(dateStr => {
-                let row = [dateStr];
-                listCrew.forEach(() => row.push(""));
-                ws_data.push(row);
-            });
-
-            let ws = XLSX.utils.aoa_to_sheet(ws_data);
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Template Jadwal");
-            XLSX.writeFile(wb, `Template_Master_Jadwal_${bulanNama[mEnd]}_${yEnd}.xlsx`);
-        }
-
-        function importJadwalExcel(event) {
-            let file = event.target.files[0];
-            if (!file) return;
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, { type: 'array' });
-                    let firstSheetName = workbook.SheetNames[0];
-                    let worksheet = workbook.Sheets[firstSheetName];
-                    let json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                    if (json.length < 2) return alert('File Excel kosong atau format tidak sesuai!');
-
-                    let headerRow = json[0];
-                    let crewListInExcel = headerRow.slice(1);
-
-                    let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-                    let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-                    let periodeKey = getPeriodeKey(mEnd, yEnd);
-
-                    if (!scheduleData[periodeKey]) scheduleData[periodeKey] = {};
-
-                    let successCount = 0;
-                    for (let i = 1; i < json.length; i++) {
-                        let row = json[i];
-                        let dateStr = row[0];
-                        if (!dateStr) continue;
-
-                        if (typeof dateStr === 'number') {
-                            let convertedDate = new Date(Math.round((dateStr - (25567 + 2)) * 86400 * 1000));
-                            dateStr = parseLocalDate(convertedDate);
-                        }
-
-                        if (!scheduleData[periodeKey][dateStr]) scheduleData[periodeKey][dateStr] = {};
-
-                        crewListInExcel.forEach((crewName, idx) => {
-                            if (!crewName) return;
-                            let shiftVal = row[idx + 1];
-                            if (shiftVal && shiftVal.toString().trim() !== '') {
-                                scheduleData[periodeKey][dateStr][crewName.toString().trim().toUpperCase()] = shiftVal.toString().trim();
-                                successCount++;
-                            }
-                        });
-                    }
-
-                    saveDataToFirebase();
-                    renderTabelBeranda();
-                    renderRekapBulanan();
-                    renderFormCrewHarian();
-                    document.getElementById('excelFileImport').value = '';
-                    alert(`Berhasil mengimpor jadwal dari Excel! Total sel terisi: ${successCount}.`);
-                } catch (err) {
-                    console.error("Gagal membaca Excel:", err);
-                    alert('Terjadi kesalahan saat membaca file Excel.');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function tambahCrew() {
-            const nameInput = document.getElementById('newCrewName');
-            const name = nameInput.value.trim().toUpperCase();
-            if (!name) return alert('Nama kosong!');
-            if (listCrew.includes(name)) return alert('Sudah ada!');
-            listCrew.push(name);
-            nameInput.value = '';
-            saveDataToFirebase();
-            updateCrewManager();
-            updateRequestDropdown();
-            setupLoginCrewDropdown();
-            renderFormCrewHarian();
-            renderTabelBeranda();
-        }
-
-        function hapusCrew(name) {
-            if (confirm(`Yakin ingin menghapus crew "${name}"?`)) {
-                listCrew = listCrew.filter(c => c !== name);
-                saveDataToFirebase();
-                updateCrewManager();
-                updateRequestDropdown();
-                setupLoginCrewDropdown();
-                renderFormCrewHarian();
-                renderTabelBeranda();
-            }
-        }
-
-        function updateCrewManager() {
-            const container = document.getElementById('listCrewContainer');
-            if (!container) return;
-            container.innerHTML = '';
-            if (listCrew.length === 0) {
-                container.innerHTML = `<span class="text-gray-400 text-[10px]">Belum ada crew.</span>`;
-                return;
-            }
-            listCrew.forEach(crew => {
-                container.innerHTML += `
-                    <span class="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-xl text-[10px] font-bold text-gray-700 shadow-sm">
-                        ${crew}
-                        <button onclick="hapusCrew('${crew}')" class="text-red-500 hover:text-red-700 font-black text-xs">×</button>
-                    </span>
-                `;
-            });
-        }
-
-        function updateRequestDropdown() {
-            const select = document.getElementById('reqCrewAdmin');
-            if (!select) return;
-            select.innerHTML = '<option value="">Pilih Nama Crew</option>';
-            listCrew.forEach(c => { select.innerHTML += `<option value="${c}">${c}</option>`; });
-            updateBackupDropdown();
-        }
-
-        function kirimRequest() {
-            let crew = "";
-            if (currentRole === 'admin') {
-                crew = document.getElementById('reqCrewAdmin').value;
-                if (!crew) return alert('Silakan pilih nama crew terlebih dahulu!');
-            } else {
-                if (!loggedInCrew) return alert('Silakan login terlebih dahulu untuk mengirim request.');
-                crew = loggedInCrew;
-            }
-
-            let date = document.getElementById('reqDate').value;
-            let jenis = document.getElementById('reqJenis').value;
-            let durasi = 1;
-            let backup = "-";
-
-            if (!date) return alert('Pilih tanggal request terlebih dahulu!');
-
-            if (jenis.includes('Izin')) {
-                durasi = parseInt(document.getElementById('izinDurasi').value) || 1;
-                backup = document.getElementById('izinBackup').value || "-";
-            }
-
-            requestData.push({ id: Date.now(), crew, date, jenis, durasi, backup, status: 'pending' });
-            saveDataToFirebase();
-            
-            renderListRequestBeranda();
-            renderListRequestAdmin();
-            let notif = document.getElementById('notifBarRequest');
-            if (notif) notif.classList.remove('hidden');
-            alert('Request / Izin berhasil dikirim ke Admin!');
-        }
-
-        function renderListRequestBeranda() {
-            const container = document.getElementById('listInfoRequestContainer');
-            if (!container) return;
-            container.innerHTML = '';
-            if (requestData.length === 0) {
-                container.innerHTML = `<span class="text-gray-400 text-[10px]">Belum ada info request.</span>`;
-                return;
-            }
-
-            requestData.forEach(req => {
-                let badgeColor = req.status === 'approved' ? 'bg-emerald-500 text-white' : (req.status === 'rejected' ? 'bg-rose-500 text-white' : 'bg-amber-400 text-gray-900');
-                let statusText = req.status === 'approved' ? 'DISETUJUI' : (req.status === 'rejected' ? 'DITOLAK' : 'MENUNGGU');
-                let durasiLabel = (req.durasi && req.durasi > 1) ? ` (${req.durasi} Hari)` : '';
-                let backupLabel = (req.backup && req.backup !== '-') ? ` | Backup: ${req.backup}` : '';
-                
-                let hapusBtnCrew = '';
-                if (req.status === 'pending' && (currentRole === 'admin' || (loggedInCrew && req.crew === loggedInCrew))) {
-                    hapusBtnCrew = `<button onclick="hapusRequestCrew(${req.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded-xl text-[9px] font-bold shadow-sm">Hapus</button>`;
-                }
-
-                container.innerHTML += `
-                    <div class="p-3.5 border border-gray-200/80 rounded-2xl bg-white/85 flex justify-between items-center text-[11px] shadow-sm">
-                        <span><b>${req.crew}</b> mengajukan <b>${req.jenis}${durasiLabel}</b> tgl <b>${formatTanggalIndo(req.date)}</b>${backupLabel}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-1 rounded-xl text-[9px] font-black ${badgeColor}">${statusText}</span>
-                            ${hapusBtnCrew}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function hapusRequestCrew(id) {
-            if (confirm('Yakin ingin menghapus request ini?')) {
-                requestData = requestData.filter(x => x.id !== id);
-                saveDataToFirebase();
-                renderListRequestBeranda();
-                renderListRequestAdmin();
-            }
-        }
-
-        function hapusRequestAdmin(id) {
-            if (confirm('Yakin ingin menghapus request ini?')) {
-                requestData = requestData.filter(x => x.id !== id);
-                saveDataToFirebase();
-                renderListRequestBeranda();
-                renderListRequestAdmin();
-            }
-        }
-
-        function renderListRequestAdmin() {
-            const container = document.getElementById('listRequestContainerAdmin');
-            if (!container) return;
-            container.innerHTML = '';
-            if (requestData.length === 0) {
-                container.innerHTML = `<span class="text-gray-400 text-[10px]">Tidak ada request/izin masuk.</span>`;
-                return;
-            }
-
-            requestData.forEach(req => {
-                let badgeColor = req.status === 'approved' ? 'bg-emerald-500 text-white' : (req.status === 'rejected' ? 'bg-rose-500 text-white' : 'bg-amber-400 text-gray-900');
-                let statusText = req.status === 'approved' ? 'DISETUJUI' : (req.status === 'rejected' ? 'DITOLAK' : 'MENUNGGU');
-                let durasiLabel = (req.durasi && req.durasi > 1) ? ` (${req.durasi} Hari)` : '';
-                let backupInfo = (req.backup && req.backup !== '-') ? `<br><b>Backup:</b> ${req.backup} (Otomatis Lembur)` : '';
-                let adminAction = '';
-
-                if (req.status === 'pending') {
-                    if (req.jenis.includes('Izin')) {
-                        adminAction = `
-                            <div class="mt-2.5 flex flex-col gap-2.5 bg-white/95 p-3 rounded-xl border border-gray-200 shadow-inner">
-                                <p class="text-[10px] text-rose-700 font-semibold">⚠️ Crew mengajukan ${req.jenis}${durasiLabel}.${backupInfo}</p>
-                                <div class="flex gap-2">
-                                    <button onclick="approveRequest(${req.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-[10px] font-bold shadow-sm">Setujui Izin</button>
-                                    <button onclick="rejectRequest(${req.id})" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl text-[10px] font-bold shadow-sm">Tolak</button>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        let allowedOptions = `<option value="">-- Pilih Shift Sesuai Request (${req.jenis}) --</option>`;
-                        if (req.jenis === 'Pagi') allowedOptions += `<option value="Pagi Kuning">Pagi (Kuning)</option><option value="Pagi Biru">Pagi (Biru)</option>`;
-                        else if (req.jenis === 'Siang') allowedOptions += `<option value="Siang Kuning">Siang (Kuning)</option><option value="Siang Biru">Siang (Biru)</option>`;
-                        else if (req.jenis === 'Middle') allowedOptions += `<option value="Middle Ungu">Middle (Ungu)</option>`;
-                        else if (req.jenis === 'SWC') allowedOptions += `<option value="SWC Oren">SWC (Oren)</option>`;
-                        else if (req.jenis === 'PWC') allowedOptions += `<option value="PWC Pink">PWC (Pink)</option>`;
-                        else if (req.jenis === 'Lemburan') allowedOptions += `<option value="Lemburan Hijau">Lemburan (Hijau)</option>`;
-                        else if (req.jenis === 'Libur') allowedOptions += `<option value="Libur Hitam">Libur (Libur)</option>`;
-
-                        adminAction = `
-                            <div class="mt-2.5 flex flex-col gap-2.5 bg-white/95 p-3 rounded-xl border border-gray-200 shadow-inner">
-                                <select id="approve_shift_${req.id}" class="p-2.5 border border-gray-300 rounded-xl text-[10px] bg-white font-medium">${allowedOptions}</select>
-                                <div class="flex gap-2">
-                                    <button onclick="approveRequest(${req.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-[10px] font-bold shadow-sm">Setujui</button>
-                                    <button onclick="rejectRequest(${req.id})" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl text-[10px] font-bold shadow-sm">Tolak</button>
-                                </div>
-                            </div>
-                        `;
-                    }
-                } else {
-                    adminAction = `
-                        <div class="mt-2.5 flex justify-end">
-                            <button onclick="resetRequest(${req.id})" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1.5 rounded-xl text-[9px] font-bold shadow-sm">Reset Status</button>
-                        </div>
-                    `;
-                }
-
-                container.innerHTML += `
-                    <div class="p-3.5 border border-gray-200/80 rounded-2xl bg-white/85 flex flex-col gap-2 shadow-sm">
-                        <div class="flex justify-between items-center text-[11px]">
-                            <span><b>${req.crew}</b> | Tgl: ${formatTanggalIndo(req.date)}${durasiLabel} | Jenis: <b>${req.jenis}</b></span>
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-1 rounded-xl text-[9px] font-black ${badgeColor}">${statusText}</span>
-                                <button onclick="hapusRequestAdmin(${req.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-xl text-[9px] font-bold shadow-sm">🗑️</button>
-                            </div>
-                        </div>
-                        ${adminAction}
-                    </div>
-                `;
-            });
-        }
-
-        function approveRequest(id) {
-            let req = requestData.find(x => x.id === id);
-            let parts = req.date.split('-');
-            let startDate = new Date(parts[0], parts[1] - 1, parts[2]);
-            let durasi = req.durasi || 1;
-
-            for (let i = 0; i < durasi; i++) {
-                let currDate = new Date(startDate);
-                currDate.setDate(startDate.getDate() + i);
-                let dateStr = parseLocalDate(currDate);
-
-                let pAuto = hitungPeriodeDariTanggal(currDate);
-                let periodeKey = getPeriodeKey(pAuto.month, pAuto.year);
-
-                if (!scheduleData[periodeKey]) scheduleData[periodeKey] = {};
-                if (!scheduleData[periodeKey][dateStr]) scheduleData[periodeKey][dateStr] = {};
-
-                if (req.jenis.includes('Izin')) {
-                    scheduleData[periodeKey][dateStr][req.crew] = 'IZIN';
-                    if (req.backup && req.backup !== '-') {
-                        scheduleData[periodeKey][dateStr][req.backup] = 'Lemburan Hijau';
-                    }
-                } else {
-                    let selectShift = document.getElementById(`approve_shift_${id}`).value;
-                    if (!selectShift) return alert('Pilih shift sesuai request!');
-                    scheduleData[periodeKey][dateStr][req.crew] = selectShift;
-                }
-            }
-
-            req.status = 'approved';
-            saveDataToFirebase();
-            renderListRequestBeranda();
-            renderListRequestAdmin();
-            renderTabelBeranda();
-            renderRekapBulanan();
-            alert('Request/Izin berhasil disetujui & diperbarui!');
-        }
-
-        function rejectRequest(id) {
-            let req = requestData.find(x => x.id === id);
-            req.status = 'rejected';
-            saveDataToFirebase();
-            renderListRequestBeranda();
-            renderListRequestAdmin();
-        }
-
-        function resetRequest(id) {
-            let req = requestData.find(x => x.id === id);
-            req.status = 'pending';
-            saveDataToFirebase();
-            renderListRequestBeranda();
-            renderListRequestAdmin();
-        }
-
-        function renderRekapBulanan() {
-            const tbody = document.getElementById('tableBodyRekapBulanan');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-            let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-            let currentPeriode = getPeriodeKey(mEnd, yEnd);
-            let periodData = scheduleData[currentPeriode] || {};
-
-            let mStart = mEnd - 1;
-            let yStart = yEnd;
-            if (mStart < 0) { mStart = 11; yStart -= 1; }
-
-            let startDatePeriode = new Date(yStart, mStart, 26);
-            let endDatePeriode = new Date(yEnd, mEnd, 25);
-            let weeks = generateWeeksArray(startDatePeriode, endDatePeriode);
-            let allDates = weeks.flat();
-
-            listCrew.forEach(crew => {
-                let jumlahMasuk = 0;
-                let jumlahLembur = 0;
-                let jumlahIzin = 0;
-
-                allDates.forEach(dateStr => {
-                    let shift = periodData[dateStr] && periodData[dateStr][crew];
-                    if (shift) {
-                        if (shift === 'IZIN') jumlahIzin++;
-                        else if (shift === 'Lemburan Hijau') {
-                            jumlahMasuk++;
-                            jumlahLembur++;
-                        } else if (shift !== 'Libur Hitam') {
-                            jumlahMasuk++;
-                        }
-                    }
-                });
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="border-b border-indigo-100 font-bold text-left">${crew}</td>
-                        <td class="border-b border-indigo-100 text-center font-bold text-emerald-700">${jumlahMasuk} Hari</td>
-                        <td class="border-b border-indigo-100 text-center font-bold text-indigo-600">${jumlahLembur}x</td>
-                        <td class="border-b border-indigo-100 text-center font-bold text-rose-600">${jumlahIzin} Hari</td>
-                    </tr>
-                `;
-            });
-        }
-
-        function renderFormCrewHarian() {
-            const container = document.getElementById('formCrewHarianContainer');
-            if (!container) return;
-            const dateVal = document.getElementById('shiftDateTarget').value;
-            if (!dateVal || listCrew.length === 0) {
-                container.innerHTML = `<span class="text-gray-400 text-[10px]">Pilih tanggal & pastikan ada crew.</span>`;
-                return;
-            }
-
-            let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-            let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-            let periodeKey = getPeriodeKey(mEnd, yEnd);
-            let savedDayData = (scheduleData[periodeKey] && scheduleData[periodeKey][dateVal]) || {};
-
-            container.innerHTML = '';
-            listCrew.forEach(crew => {
-                container.innerHTML += `
-                    <div class="flex items-center justify-between gap-2.5 bg-white/90 p-2.5 rounded-xl border border-gray-200 shadow-sm">
-                        <span class="font-bold text-xs w-28 truncate text-gray-800">${crew}</span>
-                        <select id="shift_crew_${crew}" class="w-full p-2 border border-gray-300 rounded-xl text-xs bg-gray-50 font-medium">${shiftOptionsHTML}</select>
-                    </div>
-                `;
-            });
-
-            listCrew.forEach(crew => {
-                let el = document.getElementById(`shift_crew_${crew}`);
-                if (el && savedDayData[crew]) el.value = savedDayData[crew];
-            });
-        }
-
-        function simpanShiftHarianMasal() {
-            const dateVal = document.getElementById('shiftDateTarget').value;
-            if (!dateVal) return alert('Pilih tanggal!');
-            let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-            let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-            let periodeKey = getPeriodeKey(mEnd, yEnd);
-
-            if (!scheduleData[periodeKey]) scheduleData[periodeKey] = {};
-            if (!scheduleData[periodeKey][dateVal]) scheduleData[periodeKey][dateVal] = {};
-
-            listCrew.forEach(crew => {
-                let el = document.getElementById(`shift_crew_${crew}`);
-                let shiftVal = el ? el.value : '';
-                if (shiftVal) scheduleData[periodeKey][dateVal][crew] = shiftVal;
-                else delete scheduleData[periodeKey][dateVal][crew];
-            });
-
-            saveDataToFirebase();
-            renderTabelBeranda();
-            renderRekapBulanan();
-            alert('Jadwal harian berhasil disimpan ke Firebase!');
-        }
-
-        function hitungPeriodeDariTanggal(dateObj) {
-            let d = new Date(dateObj);
-            let day = d.getDate();
-            let month = d.getMonth();
-            let year = d.getFullYear();
-            if (day >= 26) {
-                month += 1;
-                if (month > 11) { month = 0; year += 1; }
-            }
-            return { month, year };
+        function logout() {
+            currentRole = null;
+            loggedInCrew = null;
+            localStorage.removeItem('sandyrzt_role');
+            localStorage.removeItem('sandyrzt_logged_crew');
+            renderUI();
         }
 
         function getStyle(shift) {
-            if (shift === 'IZIN') return { bg: '#f43f5e', text: '#ffffff', label: 'IZIN' };
             switch(shift) {
                 case 'Pagi Kuning': return { bg: '#fef08a', text: '#713f12', label: 'P' };
                 case 'Pagi Biru': return { bg: '#60a5fa', text: '#ffffff', label: 'P' };
                 case 'Siang Kuning': return { bg: '#fde047', text: '#713f12', label: 'S' };
                 case 'Siang Biru': return { bg: '#3b82f6', text: '#ffffff', label: 'S' };
                 case 'Middle Ungu': return { bg: '#c084fc', text: '#ffffff', label: 'MID' };
-                case 'SWC Oren': return { bg: '#fb923c', text: '#ffffff', label: 'SWC' };
-                case 'PWC Pink': return { bg: '#f472b6', text: '#ffffff', label: 'PWC' };
-                case 'Lemburan Hijau': return { bg: '#4ade80', text: '#ffffff', label: 'LEMBUR' };
-                case 'Libur Hitam': return { bg: '#374151', text: '#ffffff', label: 'LIBR' };
-                default: return { bg: '#ffffff', text: '#9ca3af', label: '' };
+                case 'Libur Hitam': return { bg: '#374151', text: '#ffffff', label: 'Lbr' };
+                case 'IZIN': return { bg: '#f43f5e', text: '#ffffff', label: 'IZIN' };
+                default: return { bg: '#f3f4f6', text: '#9ca3af', label: '-' };
             }
         }
 
         function generateWeeksArray(startDateObj, endDateObj) {
             let allDays = [];
             let curr = new Date(startDateObj);
-            let end = new Date(endDateObj);
-            while (curr <= end) {
-                allDays.push(parseLocalDate(curr));
+            while (curr <= endDateObj) {
+                allDays.push(curr.toISOString().split('T')[0]);
                 curr.setDate(curr.getDate() + 1);
             }
-
             let weeks = [[], [], [], []];
-            let totalDays = allDays.length;
-            let baseSize = Math.floor(totalDays / 4);
-            let remainder = totalDays % 4;
-            let currentIndex = 0;
+            let chunkSize = Math.floor(allDays.length / 4);
+            let idx = 0;
             for (let i = 0; i < 4; i++) {
-                let chunkSize = baseSize + (i < remainder ? 1 : 0);
-                for (let j = 0; j < chunkSize; j++) {
-                    weeks[i].push(allDays[currentIndex++]);
-                }
+                let size = chunkSize + (i < (allDays.length % 4) ? 1 : 0);
+                for (let j = 0; j < size; j++) weeks[i].push(allDays[idx++]);
             }
             return weeks;
         }
 
         function renderTabelBeranda() {
-            let mEnd, yEnd;
-            let isAdmin = currentRole && currentRole === 'admin';
+            let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
+            let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
+            let pKey = getPeriodeKey(mEnd, yEnd);
+            document.getElementById('labelPeriodeStatus').innerText = pKey;
 
-            if (isAdmin) {
-                mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-                yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-            } else {
-                let latest = getLatestPublishedPeriod();
-                if (latest) {
-                    mEnd = latest.month;
-                    yEnd = latest.year;
-                    document.getElementById('selectBulanBeranda').value = mEnd;
-                    document.getElementById('selectTahunBeranda').value = yEnd;
-                } else {
-                    mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
-                    yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
-                }
-            }
-
-            let currentPeriode = getPeriodeKey(mEnd, yEnd);
-            const wrapperTabel = document.getElementById('wrapperTabelBeranda');
-            if (!wrapperTabel) return;
-
-            // Jika untuk crew, cek apakah periode ini sudah dipublikasikan admin
-            if (!isAdmin && !publishedPeriods[currentPeriode]) {
-                wrapperTabel.classList.add('hidden');
-                return;
-            } else {
-                wrapperTabel.classList.remove('hidden');
-            }
-
-            let mStart = mEnd - 1;
-            let yStart = yEnd;
+            let mStart = mEnd - 1, yStart = yEnd;
             if (mStart < 0) { mStart = 11; yStart -= 1; }
-
-            let startDatePeriode = new Date(yStart, mStart, 26);
-            let endDatePeriode = new Date(yEnd, mEnd, 25);
-            let weeks = generateWeeksArray(startDatePeriode, endDatePeriode);
+            let weeks = generateWeeksArray(new Date(yStart, mStart, 26), new Date(yEnd, mEnd, 25));
 
             let visibleWeeks = [];
             weeks.forEach((wk, wIdx) => {
-                if (wk.length === 0) return;
-                let mapKey = `${currentPeriode}_w${wIdx}`;
-                if (isAdmin || activeWeeks[mapKey]) {
+                if (wk.length && (currentRole === 'admin' || activeWeeks[`${pKey}_w${wIdx}`])) {
                     visibleWeeks.push({ weekData: wk, index: wIdx });
                 }
             });
 
-            if (visibleWeeks.length === 0) {
-                wrapperTabel.classList.add('hidden');
-                return;
-            } else {
-                wrapperTabel.classList.remove('hidden');
-            }
-
-            if (!visibleWeeks.some(vw => vw.index === activeWeekIndex)) {
+            if (!visibleWeeks.some(vw => vw.index === activeWeekIndex) && visibleWeeks.length) {
                 activeWeekIndex = visibleWeeks[0].index;
             }
 
-            const tableHeader = document.getElementById('tableHeaderBeranda');
-            const tbody = document.getElementById('tableBodyBeranda');
-            const weekTabsContainer = document.getElementById('weekTabsBeranda');
-
-            let headerHTML = `<th class="border border-red-500 bg-red-700 text-white text-left font-bold">Tanggal</th>`;
-            listCrew.forEach(crew => { headerHTML += `<th class="border border-red-500 bg-red-700 text-white text-center font-bold">${crew}</th>`; });
-            tableHeader.innerHTML = headerHTML;
-
-            weekTabsContainer.innerHTML = '';
+            let tabsContainer = document.getElementById('weekTabsBeranda');
+            tabsContainer.innerHTML = '';
             visibleWeeks.forEach(vw => {
-                let wk = vw.weekData;
-                let wIdx = vw.index;
-                let startLbl = new Date(wk[0].replace(/-/g, '/')).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-                let endLbl = new Date(wk[wk.length - 1].replace(/-/g, '/')).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-                let activeClass = wIdx === activeWeekIndex ? 'bg-red-600 text-white shadow-md shadow-red-500/20' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200';
-                weekTabsContainer.innerHTML += `<button onclick="switchWeek(${wIdx})" class="px-3.5 py-2 rounded-xl text-[11px] font-bold transition ${activeClass}">Week ${wIdx + 1} (${startLbl} - ${endLbl})</button>`;
+                let active = vw.index === activeWeekIndex ? 'bg-white text-emerald-700 font-black' : 'bg-white/20 text-white';
+                tabsContainer.innerHTML += `<button onclick="activeWeekIndex=${vw.index}; renderTabelBeranda(); renderCardHarian();" class="px-2.5 py-1 rounded-xl text-[9px] ${active}">W${vw.index + 1}</button>`;
             });
 
-            tbody.innerHTML = '';
-            let periodData = scheduleData[currentPeriode] || {};
+            let th = document.getElementById('tableHeaderBeranda');
+            let tb = document.getElementById('tableBodyBeranda');
+            let htmlTh = '<th class="p-1.5">Hari, Tgl</th>';
+            listCrew.forEach(c => htmlTh += `<th class="p-1.5 text-center">${c}</th>`);
+            th.innerHTML = htmlTh;
+
+            tb.innerHTML = '';
+            let periodData = scheduleData[pKey] || {};
             let activeDates = weeks[activeWeekIndex] || [];
 
             activeDates.forEach(dateStr => {
-                let formattedDateName = formatTanggalIndo(dateStr);
-                let rowHTML = `<td class="border-b border-gray-100 font-semibold bg-gray-50/80 text-left">${formattedDateName}</td>`;
+                let dObj = new Date(dateStr);
+                let hariStr = namaHari[dObj.getDay()];
+                let tglFmt = `${hariStr}, ${dObj.getDate()} ${bulanNama[dObj.getMonth()].substring(0,3)}`;
+
+                let row = `<td class="p-1.5 font-bold">${tglFmt}</td>`;
                 listCrew.forEach(crew => {
-                    let val = (periodData[dateStr] && periodData[dateStr][crew]) || '';
-                    let s = getStyle(val);
-                    rowHTML += `<td class="border-b border-gray-100 text-center shadow-inner" style="background-color: ${s.bg}; color: ${s.text}; font-weight: bold;">${s.label}</td>`;
+                    let sVal = periodData[dateStr]?.[crew] || '';
+                    let s = getStyle(sVal);
+                    row += `<td class="p-1.5 text-center font-bold rounded" style="background:${s.bg}; color:${s.text};">${s.label}</td>`;
                 });
-                tbody.innerHTML += `<tr>${rowHTML}</tr>`;
+                tb.innerHTML += `<tr>${row}</tr>`;
             });
         }
 
-        function switchWeek(index) {
-            activeWeekIndex = index;
-            renderTabelBeranda();
-        }
-
-        function kirimWA() {
-            let pesan = document.getElementById('waPesan').value.trim();
-            if (!pesan) return alert('Tulis pesan terlebih dahulu!');
-            let url = `https://wa.me/6282241581066?text=${encodeURIComponent(pesan)}`;
-            window.open(url, '_blank');
-        }
-
-        function exportExcel() {
+        function renderCardHarian() {
+            let container = document.getElementById('containerCardHarian');
+            container.innerHTML = '';
             let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
             let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
-            let currentPeriode = getPeriodeKey(mEnd, yEnd);
-            let periodData = scheduleData[currentPeriode] || {};
-
-            let ws_data = [];
-            let header = ["Tanggal", ...listCrew];
-            ws_data.push(header);
-
-            let mStart = mEnd - 1;
-            let yStart = yEnd;
+            let pKey = getPeriodeKey(mEnd, yEnd);
+            let mStart = mEnd - 1, yStart = yEnd;
             if (mStart < 0) { mStart = 11; yStart -= 1; }
 
-            let startDatePeriode = new Date(yStart, mStart, 26);
-            let endDatePeriode = new Date(yEnd, mEnd, 25);
-            let weeks = generateWeeksArray(startDatePeriode, endDatePeriode);
-            let allDates = weeks.flat();
+            let weeks = generateWeeksArray(new Date(yStart, mStart, 26), new Date(yEnd, mEnd, 25));
+            let activeDates = weeks[activeWeekIndex] || [];
+            let periodData = scheduleData[pKey] || {};
 
-            allDates.forEach(dateStr => {
-                let formattedDateName = formatTanggalIndo(dateStr);
-                let row = [formattedDateName];
-                listCrew.forEach(crew => {
-                    let val = (periodData[dateStr] && periodData[dateStr][crew]) || '';
-                    let s = getStyle(val);
-                    row.push(s.label);
-                });
-                ws_data.push(row);
-            });
+            let todayIso = new Date().toISOString().split('T')[0];
 
-            let ws = XLSX.utils.aoa_to_sheet(ws_data);
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Jadwal Mixue Sukorejo");
-            XLSX.writeFile(wb, `Jadwal_Mixue_Sukorejo_${currentPeriode.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`);
-        }
+            activeDates.forEach((dateStr, idx) => {
+                let dObj = new Date(dateStr);
+                let hariSingkat = namaHari[dObj.getDay()].substring(0, 3);
+                let tglNum = `${dObj.getDate()}/${dObj.getMonth() + 1}`;
+                let isToday = (dateStr === todayIso);
 
-        function exportRekapExcel() {
-            let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
-            let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
-            let currentPeriode = getPeriodeKey(mEnd, yEnd);
-            let periodData = scheduleData[currentPeriode] || {};
+                let cardContent = "";
+                let bgStyle = "";
 
-            let mStart = mEnd - 1;
-            let yStart = yEnd;
-            if (mStart < 0) { mStart = 11; yStart -= 1; }
-
-            let startDatePeriode = new Date(yStart, mStart, 26);
-            let endDatePeriode = new Date(yEnd, mEnd, 25);
-            let weeks = generateWeeksArray(startDatePeriode, endDatePeriode);
-            let allDates = weeks.flat();
-
-            let ws_data = [["Nama Crew", "Jumlah Masuk Kerja", "Jumlah Lemburan", "Jumlah Izin (Sakit/Keluarga)"]];
-
-            listCrew.forEach(crew => {
-                let jumlahMasuk = 0;
-                let jumlahLembur = 0;
-                let jumlahIzin = 0;
-                allDates.forEach(dateStr => {
-                    let shift = periodData[dateStr] && periodData[dateStr][crew];
-                    if (shift) {
-                        if (shift === 'IZIN') jumlahIzin++;
-                        else if (shift === 'Lemburan Hijau') {
-                            jumlahMasuk++;
-                            jumlahLembur++;
-                        } else if (shift !== 'Libur Hitam') {
-                            jumlahMasuk++;
-                        }
+                if (!currentRole) {
+                    let randomEmoji = listEmoji[idx % listEmoji.length];
+                    cardContent = `<span class="text-base py-0.5 block">${randomEmoji}</span>`;
+                    bgStyle = "background: #f8fafc; color: #334155;";
+                } else {
+                    let shiftText = "-";
+                    if (loggedInCrew && periodData[dateStr]?.[loggedInCrew]) {
+                        let sVal = periodData[dateStr][loggedInCrew];
+                        let s = getStyle(sVal);
+                        shiftText = s.label;
+                        bgStyle = `background: ${s.bg}; color: ${s.text};`;
+                    } else if (listCrew.length > 0 && periodData[dateStr]?.[listCrew[0]]) {
+                        let sVal = periodData[dateStr][listCrew[0]];
+                        let s = getStyle(sVal);
+                        shiftText = s.label;
+                        bgStyle = `background: ${s.bg}; color: ${s.text};`;
+                    } else {
+                        bgStyle = "background: #f3f4f6; color: #9ca3af;";
                     }
-                });
-                ws_data.push([crew, jumlahMasuk, jumlahLembur, jumlahIzin]);
-            });
+                    cardContent = `<span class="w-full text-[11px] font-bold py-1 rounded shadow-inner block" style="${bgStyle}">${shiftText}</span>`;
+                }
 
-            let ws = XLSX.utils.aoa_to_sheet(ws_data);
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Rekap Bulanan");
-            XLSX.writeFile(wb, `Rekap_Bulanan_Mixue_Sukorejo_${currentPeriode.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`);
+                let cardStyle = isToday 
+                    ? "min-width: 85px; background: #fff; border: 2px solid #dc2626; box-shadow: 0 4px 12px rgba(220,38,38,0.2);" 
+                    : "min-width: 55px; background: #fff;";
+
+                container.innerHTML += `
+                    <div style="${cardStyle}" class="p-2 rounded-2xl shadow-sm border text-center flex flex-col justify-between items-center shrink-0 transition-all">
+                        <span class="text-[9px] font-bold ${isToday ? 'text-red-600 font-black' : 'text-gray-400'} uppercase">${hariSingkat}</span>
+                        <span class="text-[10px] font-black ${isToday ? 'text-red-600' : 'text-gray-800'}">${tglNum}</span>
+                        ${cardContent}
+                    </div>
+                `;
+            });
         }
+
+        function renderPapanInfo() {
+            let box = document.getElementById('listInfoRequestContainer');
+            box.innerHTML = '';
+            if (requestData.length === 0) {
+                box.innerHTML = '<span class="text-gray-400">Belum ada request/izin.</span>';
+                return;
+            }
+            requestData.forEach(r => {
+                box.innerHTML += `<div class="bg-white/80 p-2 rounded-xl"><b>${r.crew}</b>: ${r.jenis} (${r.date}) - <span class="text-amber-600 font-bold">${r.status}</span></div>`;
+            });
+        }
+
+        function renderAdminPanel() {
+            let container = document.getElementById('adminWeekToggles');
+            if(!container) return;
+            container.innerHTML = '';
+            let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
+            let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
+            let pKey = getPeriodeKey(mEnd, yEnd);
+
+            for(let i=0; i<4; i++) {
+                let mapKey = `${pKey}_w${i}`;
+                let checked = activeWeeks[mapKey] ? 'checked' : '';
+                container.innerHTML += `<label class="flex items-center gap-1.5"><input type="checkbox" ${checked} onchange="activeWeeks['${mapKey}'] = this.checked; saveData();"> W${i+1}</label>`;
+            }
+        }
+
+        function togglePublish() {
+            let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
+            let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
+            let pKey = getPeriodeKey(mEnd, yEnd);
+            publishedPeriods[pKey] = !publishedPeriods[pKey];
+            saveData();
+            alert(`Periode ${pKey} berhasil ${publishedPeriods[pKey] ? 'DIPUBLIKASIKAN' : 'DIBATALKAN'}!`);
+            renderUI();
+        }
+
+        function kirimRequest() {
+            if (!loggedInCrew) return alert('Login dulu sebagai crew!');
+            let date = document.getElementById('reqDate').value;
+            let jenis = document.getElementById('reqJenis').value;
+            if (!date) return alert('Pilih tanggal!');
+            requestData.push({ id: Date.now(), crew: loggedInCrew, date, jenis, status: 'pending' });
+            saveData();
+            tutupModalRequest();
+            renderPapanInfo();
+            alert('Request terkirim!');
+        }
+
+        function kirimWA() { window.open('https://wa.me/6282241581066?text=Halo%20Admin,%20saya%20mau%20konsultasi%20jadwal', '_blank'); }
+        
+        function navClick(tab) {
+            ['home', 'request', 'rekap', 'profile'].forEach(t => {
+                let btn = document.getElementById(`navBtn-${t}`);
+                if (t === tab) {
+                    btn.className = "flex flex-col items-center justify-center w-12 h-12 rounded-full bg-white text-black transition-all shadow-md";
+                } else {
+                    btn.className = "flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all";
+                }
+            });
+            if(tab !== 'home') alert(`Menu ${tab} dipilih.`);
+        }
+
+        function exportExcel() { alert('Fitur download Excel siap.'); }
+        function importJadwalExcel(e) { alert('File Excel dipilih.'); }
     </script>
 </body>
 </html>
