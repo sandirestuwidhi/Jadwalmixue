@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.32 (Auto-Upload Excel Schedule Fix)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.33 (Strict 26-25 Date Fix)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -199,7 +199,7 @@
                             <button onclick="downloadMasterFile()" class="flex-1 bg-emerald-600 text-white font-bold py-2">Unduh Format</button>
                             <input type="file" accept=".xlsx, .xls" onchange="uploadMasterFileExcel(event)" class="flex-1 p-1 text-[9px] bg-white">
                         </div>
-                        <p class="text-[9px] text-gray-500 italic">*Format Excel: Kolom 1 = Tanggal (YYYY-MM-DD), Kolom berikutnya = Nama Crew berisi nilai shift.</p>
+                        <p class="text-[9px] text-gray-500 italic">*Format Excel: Kolom 1 = Tanggal (YYYY-MM-DD), Kolom berikutnya = Nama Crew (Sandi, Monica, Izza, There, Catur).</p>
                     </div>
 
                     <!-- INPUT JADWAL MANUAL PER-CREW SATUAN -->
@@ -330,7 +330,7 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.32</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.33</p>
         </div>
 
     </div>
@@ -586,6 +586,7 @@
             }
         }
 
+        // GENERATOR STRICT: Mulai Tgl 26 bulan lalu, berakhir Tgl 25 bulan ini (Total 31 hari presisi)
         function generateWeeksArray(startDateObj, endDateObj) {
             let allDays = [];
             let curr = new Date(startDateObj);
@@ -1035,22 +1036,33 @@
             window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
         }
 
+        // GENERATOR FORMAT EXCEL STRIKELY STARTING FROM 26TH OF PREV MONTH TO 25TH OF SELECTED MONTH
         function downloadMasterFile() {
             let wb = XLSX.utils.book_new();
-            let wsData = [["Tanggal", "Sandi", "Monica", "Izza", "There", "Catur"]];
+            let headerRow = ["Tanggal"];
+            let defaultCrew = listCrew.length > 0 ? listCrew : ["Sandi", "Monica", "Izza", "There", "Catur"];
+            defaultCrew.forEach(c => headerRow.push(c));
+            
+            let wsData = [headerRow];
+            
             let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
             let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
             let mStart = mEnd - 1, yStart = yEnd;
             if (mStart < 0) { mStart = 11; yStart -= 1; }
+            
             let curr = new Date(yStart, mStart, 26);
             let end = new Date(yEnd, mEnd, 25);
+            
             while(curr <= end) {
-                wsData.push([curr.toISOString().split('T')[0], "Pagi Kuning", "Libur Hitam", "Pagi Biru", "Siang Biru", "Pagi Kuning"]);
+                let row = [curr.toISOString().split('T')[0]];
+                defaultCrew.forEach(() => row.push("Pagi Kuning"));
+                wsData.push(row);
                 curr.setDate(curr.getDate() + 1);
             }
+            
             let ws = XLSX.utils.aoa_to_sheet(wsData);
-            XLSX.utils.book_append_sheet(wb, ws, "Format Jadwal");
-            XLSX.writeFile(wb, "Format_Upload_Jadwal_Mixue.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Format Jadwal 26-25");
+            XLSX.writeFile(wb, "Format_Jadwal_Mixue_26_sampa_25.xlsx");
         }
 
         function uploadMasterFileExcel(e) {
@@ -1067,8 +1079,6 @@
                     if(rows.length < 2) return alert('File Excel kosong atau tidak valid.');
                     
                     let headers = rows[0];
-                    let crewNames = headers.slice(1); // Kolom setelah tanggal adalah nama crew
-                    
                     let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
                     let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
                     let pKey = getPeriodeKey(mEnd, yEnd);
@@ -1080,7 +1090,6 @@
                         let tgl = row[0];
                         if(!tgl) continue;
                         
-                        // Handle format tanggal excel / string
                         if(typeof tgl === 'number') {
                             let utc_days = Math.floor(tgl - 25569);
                             let utc_value = utc_days * 86400;
@@ -1103,10 +1112,10 @@
                     saveData();
                     renderTabelBeranda();
                     renderCardHarian();
-                    alert('Jadwal berhasil diunggah dan otomatis masuk ke sistem untuk periode ini!');
+                    alert('Jadwal Excel berhasil diunggah dengan format rentang 26 s.d 25 yang benar!');
                 } catch(err) {
                     console.error(err);
-                    alert('Gagal membaca file Excel. Pastikan format sesuai.');
+                    alert('Gagal membaca file Excel. Pastikan format kolom sesuai.');
                 }
             };
             reader.readAsArrayBuffer(file);
