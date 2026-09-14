@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.34 (Timezone Date Fix)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.36 (Compact View & Refresh Fix)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -64,27 +64,6 @@
             box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.08);
             border-radius: 24px;
         }
-        .locked-overlay {
-            position: relative;
-            overflow: hidden;
-        }
-        .locked-overlay::after {
-            content: "🔒 Login untuk akses fitur ini";
-            position: absolute;
-            inset: 0;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(6px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            color: #dc2626;
-            font-size: 12px;
-            z-index: 20;
-            text-align: center;
-            padding: 10px;
-            border-radius: 24px;
-        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -129,15 +108,15 @@
                 </div>
             </div>
 
-            <!-- KARTU UTAMA: JADWAL AKTIF MINGGUAN -->
-            <div class="bg-gradient-to-br from-emerald-400 to-emerald-500 text-white p-5 rounded-3xl shadow-lg shadow-emerald-500/20 space-y-3">
+            <!-- KARTU UTAMA: JADWAL AKTIF MINGGUAN (Tampilan Diperkecil Sedikit agar Lebih Rapi) -->
+            <div class="bg-gradient-to-br from-emerald-400 to-emerald-500 text-white p-4 rounded-3xl shadow-lg shadow-emerald-500/20 space-y-2.5">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-black uppercase tracking-wider">Jadwal Aktif Mingguan</h3>
-                    <button onclick="switchPage('rekap')" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-xl text-[9px] font-bold backdrop-blur">Rekap 📈</button>
+                    <h3 class="text-[11px] font-black uppercase tracking-wider">Jadwal Aktif Mingguan</h3>
+                    <button onclick="switchPage('rekap')" class="bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded-xl text-[9px] font-bold backdrop-blur">Rekap 📈</button>
                 </div>
                 <div id="weekTabsBeranda" class="flex flex-wrap gap-1"></div>
-                <div class="overflow-x-auto rounded-2xl bg-white/95 text-gray-800 p-2 shadow-inner">
-                    <table id="rekapTableBeranda" class="w-full text-left text-[10px]">
+                <div class="overflow-x-auto rounded-xl bg-white/95 text-gray-800 p-1.5 shadow-inner">
+                    <table id="rekapTableBeranda" class="w-full text-left text-[9.5px]">
                         <thead><tr id="tableHeaderBeranda" class="bg-emerald-600 text-white"></tr></thead>
                         <tbody id="tableBodyBeranda"></tbody>
                     </table>
@@ -147,8 +126,8 @@
             <!-- KARTU HARIAN DINAMIS -->
             <div id="containerCardHarian" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 pt-1"></div>
 
-            <!-- AREA TERKUNCI -->
-            <div id="wrapperFiturTerkunci" class="space-y-3 locked-overlay">
+            <!-- AREA TOMBOL REFRESH PENGGANTI GEMBOK/BLUR -->
+            <div id="wrapperFiturTerkunci" class="space-y-3">
                 <div class="bg-purple-400 text-white p-4 rounded-3xl shadow-lg shadow-purple-500/20 space-y-2">
                     <div class="flex justify-between items-center">
                         <h3 class="text-xs font-black uppercase tracking-wider">Papan Info & Izin</h3>
@@ -162,10 +141,10 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-sky-400 text-white p-4 rounded-3xl shadow-lg shadow-sky-500/20 space-y-2 flex flex-col justify-between">
                         <div>
-                            <h3 class="text-xs font-black uppercase">Request Jadwal</h3>
-                            <p class="text-[9px] text-sky-100">Ajukan perubahan shift atau tukar jadwal.</p>
+                            <h3 class="text-xs font-black uppercase">Refresh Data</h3>
+                            <p class="text-[9px] text-sky-100">Segarkan koneksi & muat ulang data terbaru.</p>
                         </div>
-                        <button onclick="switchPage('request')" class="bg-white text-sky-600 font-black py-2 text-[10px] shadow-sm">Buat Request</button>
+                        <button onclick="refreshDataApp()" class="bg-white text-sky-600 font-black py-2 text-[10px] shadow-sm">🔄 Refresh</button>
                     </div>
                     <div class="bg-rose-400 text-white p-4 rounded-3xl shadow-lg shadow-rose-500/20 space-y-2 flex flex-col justify-between">
                         <div>
@@ -282,6 +261,7 @@
         <div id="page-rekap" class="space-y-3 hidden">
             <div class="glass-card p-4 space-y-3">
                 <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">📈 Rekapitulasi Kehadiran & Lembur Crew</h3>
+                <p id="labelRekapPeriodeInfo" class="text-[9px] font-bold text-gray-500 mb-1"></p>
                 <div class="overflow-x-auto rounded-xl bg-white p-2 border">
                     <table class="w-full text-left text-[10px]">
                         <thead>
@@ -330,7 +310,7 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.34</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.36</p>
         </div>
 
     </div>
@@ -390,7 +370,6 @@
         const listEmoji = ["🍦", "✨", "🔥", "🚀", "⭐", "🎉", "🍹", "🥳", "🎯", "🍀"];
         let activeWeekIndex = 0;
 
-        // HELPER FIX TIMEZONE (Y-m-d tanpa mundur karena toISOString)
         function formatDateLocal(d) {
             let year = d.getFullYear();
             let month = String(d.getMonth() + 1).padStart(2, '0');
@@ -457,7 +436,6 @@
             let labelHalo = document.getElementById('labelHaloUser');
             let btnLogout = document.getElementById('btnLogout');
             let btnLogin = document.getElementById('btnBukaLogin');
-            let wrapperLock = document.getElementById('wrapperFiturTerkunci');
             let sectionAdmin = document.getElementById('sectionAdminPanel');
             let sectionTambahCrew = document.getElementById('sectionTambahCrewAdmin');
             let adminApprovalSecPage = document.getElementById('adminApprovalSectionPage');
@@ -465,7 +443,6 @@
             if (currentRole) {
                 btnLogout.classList.remove('hidden');
                 btnLogin.classList.add('hidden');
-                wrapperLock.classList.remove('locked-overlay');
 
                 if (currentRole === 'admin') {
                     labelHalo.innerText = "Hallo [ADMIN]";
@@ -482,11 +459,14 @@
                 labelHalo.innerText = "Hallo [Tamu]";
                 btnLogout.classList.add('hidden');
                 btnLogin.classList.remove('hidden');
-                wrapperLock.classList.add('locked-overlay');
                 sectionAdmin.classList.add('hidden');
                 sectionTambahCrew.classList.add('hidden');
                 if(adminApprovalSecPage) adminApprovalSecPage.classList.add('hidden');
             }
+        }
+
+        function refreshDataApp() {
+            window.location.reload();
         }
 
         function setupTahun() {
@@ -554,7 +534,7 @@
             return `26 ${bulanNama[mStart]} - 25 ${bulanNama[mEnd]} ${yEnd}`;
         }
 
-        function syncPeriode() { renderTabelBeranda(); renderCardHarian(); }
+        function syncPeriode() { renderTabelBeranda(); renderCardHarian(); if(!document.getElementById('page-rekap').classList.contains('hidden')) renderRekapDetail(); }
 
         function bukaModalLogin() { document.getElementById('modalLogin').classList.remove('hidden'); document.getElementById('modalLogin').classList.add('flex'); }
         function tutupModalLogin() { document.getElementById('modalLogin').classList.add('hidden'); document.getElementById('modalLogin').classList.remove('flex'); }
@@ -594,7 +574,6 @@
             }
         }
 
-        // GENERATOR STRICT: Mulai Tgl 26, Berakhir Tgl 25 PERSIS TANPA GESER WAKTU
         function generateWeeksArray(startDateObj, endDateObj) {
             let allDays = [];
             let curr = new Date(startDateObj.getTime());
@@ -642,13 +621,13 @@
             tabsContainer.innerHTML = '';
             visibleWeeks.forEach(vw => {
                 let active = vw.index === activeWeekIndex ? 'bg-white text-emerald-700 font-black' : 'bg-white/20 text-white';
-                tabsContainer.innerHTML += `<button onclick="activeWeekIndex=${vw.index}; renderTabelBeranda(); renderCardHarian();" class="px-2.5 py-1 rounded-xl text-[9px] ${active}">W${vw.index + 1}</button>`;
+                tabsContainer.innerHTML += `<button onclick="activeWeekIndex=${vw.index}; renderTabelBeranda(); renderCardHarian();" class="px-2 py-0.5 rounded-xl text-[9px] ${active}">W${vw.index + 1}</button>`;
             });
 
             let th = document.getElementById('tableHeaderBeranda');
             let tb = document.getElementById('tableBodyBeranda');
-            let htmlTh = '<th class="p-1.5">Hari, Tgl</th>';
-            listCrew.forEach(c => htmlTh += `<th class="p-1.5 text-center">${c}</th>`);
+            let htmlTh = '<th class="p-1">Hari, Tgl</th>';
+            listCrew.forEach(c => htmlTh += `<th class="p-1 text-center">${c}</th>`);
             th.innerHTML = htmlTh;
 
             tb.innerHTML = '';
@@ -661,11 +640,11 @@
                 let hariStr = namaHari[dObj.getDay()];
                 let tglFmt = `${hariStr}, ${dObj.getDate()} ${bulanNama[dObj.getMonth()].substring(0,3)}`;
 
-                let row = `<td class="p-1.5 font-bold">${tglFmt}</td>`;
+                let row = `<td class="p-1 font-bold">${tglFmt}</td>`;
                 listCrew.forEach(crew => {
                     let sVal = periodData[dateStr]?.[crew] || '';
                     let s = getStyle(sVal);
-                    row += `<td class="p-1.5 text-center font-bold rounded" style="background:${s.bg}; color:${s.text};">${s.label}</td>`;
+                    row += `<td class="p-1 text-center font-bold rounded" style="background:${s.bg}; color:${s.text};">${s.label}</td>`;
                 });
                 tb.innerHTML += `<tr>${row}</tr>`;
             });
@@ -698,7 +677,7 @@
 
                 if (!currentRole) {
                     let randomEmoji = listEmoji[idx % listEmoji.length];
-                    cardContent = `<span class="text-base py-0.5 block">${randomEmoji}</span>`;
+                    cardContent = `<span class="text-sm py-0.5 block">${randomEmoji}</span>`;
                     bgStyle = "background: #f8fafc; color: #334155;";
                 } else {
                     let shiftText = "-";
@@ -715,17 +694,17 @@
                     } else {
                         bgStyle = "background: #f3f4f6; color: #9ca3af;";
                     }
-                    cardContent = `<span class="w-full text-[11px] font-bold py-1 rounded shadow-inner block" style="${bgStyle}">${shiftText}</span>`;
+                    cardContent = `<span class="w-full text-[10px] font-bold py-0.5 rounded shadow-inner block" style="${bgStyle}">${shiftText}</span>`;
                 }
 
                 let cardStyle = isToday 
-                    ? "min-width: 85px; background: #fff; border: 2px solid #dc2626; box-shadow: 0 4px 12px rgba(220,38,38,0.2);" 
-                    : "min-width: 55px; background: #fff;";
+                    ? "min-width: 75px; background: #fff; border: 2px solid #dc2626; box-shadow: 0 4px 12px rgba(220,38,38,0.2);" 
+                    : "min-width: 50px; background: #fff;";
 
                 container.innerHTML += `
-                    <div style="${cardStyle}" class="p-2 rounded-2xl shadow-sm border text-center flex flex-col justify-between items-center shrink-0 transition-all">
-                        <span class="text-[9px] font-bold ${isToday ? 'text-red-600 font-black' : 'text-gray-400'} uppercase">${hariSingkat}</span>
-                        <span class="text-[10px] font-black ${isToday ? 'text-red-600' : 'text-gray-800'}">${tglNum}</span>
+                    <div style="${cardStyle}" class="p-1.5 rounded-2xl shadow-sm border text-center flex flex-col justify-between items-center shrink-0 transition-all">
+                        <span class="text-[8.5px] font-bold ${isToday ? 'text-red-600 font-black' : 'text-gray-400'} uppercase">${hariSingkat}</span>
+                        <span class="text-[9.5px] font-black ${isToday ? 'text-red-600' : 'text-gray-800'}">${tglNum}</span>
                         ${cardContent}
                     </div>
                 `;
@@ -734,12 +713,26 @@
 
         function renderRekapDetail() {
             let tbody = document.getElementById('tabelRekapDetail');
+            let labelInfo = document.getElementById('labelRekapPeriodeInfo');
             if(!tbody) return;
             tbody.innerHTML = '';
 
             let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
             let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
             let pKey = getPeriodeKey(mEnd, yEnd);
+            if(labelInfo) labelInfo.innerText = `Periode Rekap: ${pKey}`;
+
+            let mStart = mEnd - 1, yStart = yEnd;
+            if (mStart < 0) { mStart = 11; yStart -= 1; }
+
+            let periodDates = [];
+            let curr = new Date(yStart, mStart, 26);
+            let end = new Date(yEnd, mEnd, 25);
+            while(curr <= end) {
+                periodDates.push(formatDateLocal(curr));
+                curr.setDate(curr.getDate() + 1);
+            }
+
             let periodData = scheduleData[pKey] || {};
 
             if (listCrew.length === 0) {
@@ -749,7 +742,8 @@
 
             listCrew.forEach(c => {
                 let masuk = 0, izin = 0, lembur = 0;
-                Object.keys(periodData).forEach(date => {
+                
+                periodDates.forEach(date => {
                     let shift = periodData[date]?.[c];
                     if (shift && shift !== 'Libur Hitam' && shift !== 'IZIN' && shift !== '') {
                         masuk++;
@@ -1048,7 +1042,6 @@
             window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
         }
 
-        // GENERATOR FORMAT EXCEL: STRICT MULAI TGL 26 S.D TGL 25 BULAN PILIHAN (FIX TIMEZONE)
         function downloadMasterFile() {
             let wb = XLSX.utils.book_new();
             let headerRow = ["Tanggal"];
@@ -1102,7 +1095,6 @@
                         let tgl = row[0];
                         if(!tgl) continue;
                         
-                        // Parse tanggal excel / string
                         if(typeof tgl === 'number') {
                             let utc_days = Math.floor(tgl - 25569);
                             let utc_value = utc_days * 86400;
