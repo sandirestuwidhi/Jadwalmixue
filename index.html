@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.37 (Strict Guest Access Fix)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.39 (Shift Category Fix)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -310,12 +310,12 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.37</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.39</p>
         </div>
 
     </div>
 
-    <!-- BOTTOM NAVIGATION BAR (Tamu hanya bisa akses Home / Logo Rumah) -->
+    <!-- BOTTOM NAVIGATION BAR -->
     <div class="fixed bottom-3 left-3 right-3 max-w-sm mx-auto bg-black text-white p-2.5 flex justify-around items-center rounded-full shadow-2xl z-50">
         <button onclick="switchPage('home')" id="navBtn-home" class="flex flex-col items-center justify-center w-12 h-12 rounded-full bg-white text-black transition-all shadow-md">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -725,6 +725,7 @@
             });
         }
 
+        // PERBAIKAN LOGIKA REKAP (SWC & PWC MASUK KE MASUK BIASA, LEMBUR HANYA LEMBURAN HIJAU)
         function renderRekapDetail() {
             let tbody = document.getElementById('tabelRekapDetail');
             let labelInfo = document.getElementById('labelRekapPeriodeInfo');
@@ -760,8 +761,10 @@
                 periodDates.forEach(date => {
                     let shift = periodData[date]?.[c];
                     if (shift && shift !== 'Libur Hitam' && shift !== 'IZIN' && shift !== '') {
-                        masuk++;
-                        if (shift === 'Lemburan Hijau' || shift === 'SWC Oren' || shift === 'PWC Pink') lembur++;
+                        masuk++; // Semua shift aktif (Pagi, Siang, Mid, SWC, PWC) masuk ke hitungan hadir biasa
+                        if (shift === 'Lemburan Hijau') {
+                            lembur++; // Lembur khusus hanya untuk Lemburan Hijau
+                        }
                     } else if (shift === 'IZIN') {
                         izin++;
                     }
