@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.41 (Dynamic Request Popup)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.42 (Conditional WhatsApp Popup)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -304,7 +304,7 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.41</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.42</p>
         </div>
 
     </div>
@@ -325,7 +325,7 @@
         </button>
     </div>
 
-    <!-- MODAL POPUP WA OTOMATIS SETELAH KIRIM REQUEST -->
+    <!-- MODAL POPUP WA KHUSUS IZIN SAKIT / KEPERLUAN LAINNYA -->
     <div id="modalPopupWA" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-xs rounded-3xl p-5 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-2">
@@ -1054,22 +1054,24 @@
             if (jenis === 'Izin Sakit' || jenis === 'Keperluan Lainnya') {
                 jmlHari = document.getElementById('reqBerapaHari').value || "1";
                 alasan = document.getElementById('reqAlasan').value || "keperluan jadwal";
-            }
 
-            requestData.push({ id: Date.now(), timestamp: Date.now(), crew: loggedInCrew, jenis, jmlHari, date, alasan, status: 'Pending' });
-            saveData();
-            renderRiwayatRequestSaya();
-            renderAdminRequestsPage();
+                requestData.push({ id: Date.now(), timestamp: Date.now(), crew: loggedInCrew, jenis, jmlHari, date, alasan, status: 'Pending' });
+                saveData();
+                renderRiwayatRequestSaya();
+                renderAdminRequestsPage();
 
-            // Buat template pesan otomatis untuk popup WA
-            if (jenis === 'Izin Sakit' || jenis === 'Keperluan Lainnya') {
+                // Munculkan popup WA KHUSUS untuk Izin Sakit atau Keperluan Lainnya
                 lastGeneratedWAPesan = `Selamat pagi/siang, Bapak Atasan dan rekan rekan semua.\n\nMohon izin menyampaikan request terkait jadwal kerja:\n\nNama: ${loggedInCrew}\nJenis Request: ${jenis}\nMulai Tanggal: ${date} (${jmlHari} hari)\nKeterangan: ${alasan}\n\nTerima kasih atas perhatian dan pengertian Bapak dan rekan rekan.`;
+                document.getElementById('popupWAText').value = lastGeneratedWAPesan;
+                bukaModalWA();
             } else {
-                lastGeneratedWAPesan = `Selamat pagi/siang, Bapak Atasan dan rekan rekan semua.\n\nMohon izin menyampaikan request terkait jadwal kerja:\n\nNama: ${loggedInCrew}\nJenis Request: ${jenis}\nTanggal: ${date}\n\nTerima kasih atas perhatian dan pengertian Bapak dan rekan rekan.`;
+                // Untuk request shift / libur lainnya langsung catat ke sistem tanpa popup WA
+                requestData.push({ id: Date.now(), timestamp: Date.now(), crew: loggedInCrew, jenis, jmlHari, date, alasan, status: 'Pending' });
+                saveData();
+                renderRiwayatRequestSaya();
+                renderAdminRequestsPage();
+                alert('Request berhasil disimpan ke sistem!');
             }
-
-            document.getElementById('popupWAText').value = lastGeneratedWAPesan;
-            bukaModalWA();
         }
 
         function bukaModalWA() {
