@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.36 (Compact View & Refresh Fix)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.37 (Strict Guest Access Fix)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -108,11 +108,11 @@
                 </div>
             </div>
 
-            <!-- KARTU UTAMA: JADWAL AKTIF MINGGUAN (Tampilan Diperkecil Sedikit agar Lebih Rapi) -->
+            <!-- KARTU UTAMA: JADWAL AKTIF MINGGUAN -->
             <div class="bg-gradient-to-br from-emerald-400 to-emerald-500 text-white p-4 rounded-3xl shadow-lg shadow-emerald-500/20 space-y-2.5">
                 <div class="flex justify-between items-center">
                     <h3 class="text-[11px] font-black uppercase tracking-wider">Jadwal Aktif Mingguan</h3>
-                    <button onclick="switchPage('rekap')" class="bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded-xl text-[9px] font-bold backdrop-blur">Rekap 📈</button>
+                    <button onclick="handleNavRestricted('rekap')" class="bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded-xl text-[9px] font-bold backdrop-blur">Rekap 📈</button>
                 </div>
                 <div id="weekTabsBeranda" class="flex flex-wrap gap-1"></div>
                 <div class="overflow-x-auto rounded-xl bg-white/95 text-gray-800 p-1.5 shadow-inner">
@@ -126,8 +126,8 @@
             <!-- KARTU HARIAN DINAMIS -->
             <div id="containerCardHarian" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 pt-1"></div>
 
-            <!-- AREA TOMBOL REFRESH PENGGANTI GEMBOK/BLUR -->
-            <div id="wrapperFiturTerkunci" class="space-y-3">
+            <!-- PAPAN INFO & TOMBOL REFRESH / CHAT WA -->
+            <div class="space-y-3">
                 <div class="bg-purple-400 text-white p-4 rounded-3xl shadow-lg shadow-purple-500/20 space-y-2">
                     <div class="flex justify-between items-center">
                         <h3 class="text-xs font-black uppercase tracking-wider">Papan Info & Izin</h3>
@@ -310,23 +310,23 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.36</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.37</p>
         </div>
 
     </div>
 
-    <!-- BOTTOM NAVIGATION BAR -->
+    <!-- BOTTOM NAVIGATION BAR (Tamu hanya bisa akses Home / Logo Rumah) -->
     <div class="fixed bottom-3 left-3 right-3 max-w-sm mx-auto bg-black text-white p-2.5 flex justify-around items-center rounded-full shadow-2xl z-50">
         <button onclick="switchPage('home')" id="navBtn-home" class="flex flex-col items-center justify-center w-12 h-12 rounded-full bg-white text-black transition-all shadow-md">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         </button>
-        <button onclick="switchPage('request')" id="navBtn-request" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+        <button onclick="handleNavRestricted('request')" id="navBtn-request" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all" title="Login diperlukan">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
         </button>
-        <button onclick="switchPage('rekap')" id="navBtn-rekap" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+        <button onclick="handleNavRestricted('rekap')" id="navBtn-rekap" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all" title="Login diperlukan">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         </button>
-        <button onclick="switchPage('profile')" id="navBtn-profile" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+        <button onclick="handleNavRestricted('profile')" id="navBtn-profile" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all" title="Login diperlukan">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
         </button>
     </div>
@@ -404,7 +404,20 @@
             window.FB_set(dataRef, { crew: listCrew, schedule: scheduleData, requests: requestData, weeks: activeWeeks, published: publishedPeriods });
         }
 
+        function handleNavRestricted(pageId) {
+            if (!currentRole) {
+                alert('🔒 Akses ditolak! Silakan Login terlebih dahulu untuk membuka menu ini.');
+                bukaModalLogin();
+                return;
+            }
+            switchPage(pageId);
+        }
+
         function switchPage(pageId) {
+            if (!currentRole && pageId !== 'home') {
+                bukaModalLogin();
+                return;
+            }
             ['home', 'request', 'rekap', 'profile'].forEach(p => {
                 let el = document.getElementById(`page-${p}`);
                 let btn = document.getElementById(`navBtn-${p}`);
@@ -555,6 +568,7 @@
             loggedInCrew = null;
             localStorage.removeItem('sandyrzt_role');
             localStorage.removeItem('sandyrzt_logged_crew');
+            switchPage('home');
             renderUI();
         }
 
