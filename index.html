@@ -3,11 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.7.45</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.0 (Firebase Realtime)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Firebase SDK (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, get, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYFhCdsLOF4N49bOBgMfgTe9M599YE7Ik",
+            authDomain: "mixuesukorejo-64d47.firebaseapp.com",
+            databaseURL: "https://mixuesukorejo-64d47-default-rtdb.firebaseio.com/",
+            projectId: "mixuesukorejo-64d47",
+            storageBucket: "mixuesukorejo-64d47.firebasestorage.app",
+            messagingSenderId: "687606319682",
+            appId: "1:687606319682:web:a8fdc803f7729e051ebbdb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.dbRef = db;
+        window.FB_ref = ref;
+        window.FB_onValue = onValue;
+        window.FB_set = set;
+        window.FB_get = get;
+        window.FB_remove = remove;
+
+        if (window.initAppAfterFirebase) {
+            window.initAppAfterFirebase();
+        }
+    </script>
     <style>
         body { 
             font-size: 11px; 
@@ -17,7 +46,6 @@
         th, td { padding: 8px 12px !important; white-space: nowrap; text-align: center; }
         td:first-child { text-align: left; }
         
-        /* Glassmorphism Modern */
         .glass-card {
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(20px);
@@ -61,8 +89,8 @@
             <div class="absolute -left-8 -bottom-8 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
             <h1 class="text-base font-black tracking-wider uppercase relative z-10">JADWAL KERJA MIXUE SUKOREJO</h1>
             <div class="flex items-center justify-center gap-1.5 mt-1.5 relative z-10">
-                <span class="w-2 h-2 rounded-full bg-white inline-block"></span>
-                <span class="text-[10px] font-semibold text-red-100">Mixue Sukorejo Official System</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-300 inline-block animate-pulse"></span>
+                <span class="text-[10px] font-semibold text-red-100">Firebase Realtime Connected</span>
             </div>
             <button id="btnLogout" onclick="logout()" class="hidden absolute right-3.5 top-4 bg-black/20 hover:bg-black/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold backdrop-blur transition shadow-sm z-10">Keluar</button>
         </div>
@@ -70,7 +98,7 @@
         <!-- ================= HALAMAN UTAMA ================= -->
         <div class="space-y-4">
             
-            <!-- SUB TAB NAVIGASI (Hanya Muncul Jika Login) -->
+            <!-- SUB TAB NAVIGASI -->
             <div id="containerSubTab" class="hidden flex gap-2 glass-card p-1.5">
                 <button onclick="switchTab('beranda')" id="tabBtnBeranda" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 text-white shadow-md shadow-red-500/20 transition">Beranda & Request</button>
                 <button onclick="switchTab('panel')" id="tabBtnPanel" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-white/50 transition hidden">Pusat Panel (Admin)</button>
@@ -80,7 +108,7 @@
             <!-- TAB 1: BERANDA -->
             <div id="tabBeranda" class="space-y-4">
                 
-                <!-- Status Shift Kamu Hari Ini (Jika Crew Login) -->
+                <!-- Status Shift Crew Hari Ini -->
                 <div id="panelShiftAktifCrew" class="glass-card p-4 border-l-4 border-red-600 hidden space-y-2">
                     <h3 class="text-xs font-black text-gray-800" id="salamCrewTitle">Status Shift Kamu Hari Ini</h3>
                     <div id="boxInfoShiftHariIni" class="p-3.5 rounded-xl bg-white/80 border border-gray-200 text-xs font-semibold text-center shadow-inner">
@@ -88,7 +116,7 @@
                     </div>
                 </div>
 
-                <!-- Pilihan Periode Bulan & Tahun untuk Tabel -->
+                <!-- Pilihan Periode Bulan & Tahun -->
                 <div class="glass-card p-4 border-l-4 border-red-600 flex justify-between items-center">
                     <div>
                         <h3 class="text-xs font-black text-gray-800">Pilih Periode Bulan</h3>
@@ -121,14 +149,12 @@
                     </div>
                 </div>
 
-                <!-- KOTAK LOGIN DI BAWAH TABEL -->
+                <!-- KOTAK LOGIN -->
                 <div id="sectionLogin" class="space-y-2">
                     <div class="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-center py-2.5 px-3 rounded-2xl font-black text-[10px] tracking-wider uppercase shadow-lg shadow-red-500/20 animate-pulse">
                         ⚠️ LOGIN UNTUK REKUES, IZIN, ATAU AKSES FITUR LAIN ⚠️
                     </div>
                     <div class="glass-card p-4 border-t-4 border-red-600 space-y-3.5">
-                        
-                        <!-- Tombol Pilihan Menu Login -->
                         <div id="menuPilihanLogin" class="grid grid-cols-2 gap-2.5">
                             <button onclick="bukaFormLogin('crew')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5">
                                 👤 Login Crew
@@ -138,7 +164,6 @@
                             </button>
                         </div>
 
-                        <!-- Form Input Crew (Hidden Default) -->
                         <div id="formLoginCrew" class="hidden space-y-2.5 bg-white/70 p-3.5 rounded-2xl border border-blue-100 shadow-inner">
                             <div class="flex justify-between items-center">
                                 <span class="text-[10px] font-black text-blue-900 uppercase tracking-wide">Form Login Crew</span>
@@ -157,7 +182,6 @@
                             <button onclick="prosesLoginUniversal('crew')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 text-xs shadow-md shadow-blue-500/20">Masuk sebagai Crew</button>
                         </div>
 
-                        <!-- Form Input Admin (Hidden Default) -->
                         <div id="formLoginAdmin" class="hidden space-y-2.5 bg-white/70 p-3.5 rounded-2xl border border-red-100 shadow-inner">
                             <div class="flex justify-between items-center">
                                 <span class="text-[10px] font-black text-red-900 uppercase tracking-wide">Form Login Admin</span>
@@ -169,11 +193,10 @@
                             </div>
                             <button onclick="prosesLoginUniversal('admin')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 text-xs shadow-md shadow-red-500/20">Masuk sebagai Admin</button>
                         </div>
-
                     </div>
                 </div>
 
-                <!-- FORM REQUEST & IZIN (Hanya Tampil Jika Login) -->
+                <!-- FORM REQUEST & IZIN -->
                 <div id="containerFormRequest" class="glass-card p-4 border-l-4 border-blue-600 space-y-3.5 hidden">
                     <h3 class="font-black text-xs text-blue-900" id="labelFormRequestTitle">Form Request & Izin Shift</h3>
                     
@@ -202,7 +225,6 @@
                         </div>
                     </div>
 
-                    <!-- PENGATURAN TAMBAHAN KHUSUS IZIN -->
                     <div id="wrapperFormIzin" class="hidden p-3.5 bg-white/75 border border-blue-200 rounded-2xl space-y-3 text-xs shadow-inner">
                         <p class="font-black text-blue-800 text-[11px]">Pengaturan Durasi & Backup Shift</p>
                         <div class="grid grid-cols-2 gap-3">
@@ -222,7 +244,7 @@
                             <input type="text" id="izinKeterangan" class="w-full p-2.5 bg-white" placeholder="Tuliskan keperluan izin di sini...">
                         </div>
                         <button onclick="kirimPesanWAAdmin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1.5">
-                            Kirim Format Surat Izin ke WhatsApp (Grup/Kontak)
+                            Kirim Format Surat Izin ke WhatsApp
                         </button>
                     </div>
 
@@ -233,7 +255,7 @@
                     </div>
                 </div>
 
-                <!-- PAPAN INFO / STATUS REQUEST (Hanya Tampil Jika Login) -->
+                <!-- PAPAN INFO -->
                 <div id="containerPapanInfo" class="glass-card p-4 border-l-4 border-amber-500 hidden">
                     <h3 class="font-black text-xs mb-3 text-amber-900">Papan Info: Status Hasil Request & Izin Semua Crew</h3>
                     <div id="listInfoRequestContainer" class="space-y-2.5 max-h-40 overflow-y-auto pr-1">
@@ -241,7 +263,7 @@
                     </div>
                 </div>
 
-                <!-- HUBUNGI ADMIN (Hanya Tampil Jika Login) -->
+                <!-- HUBUNGI ADMIN -->
                 <div id="containerHubungiWA" class="glass-card p-4 border-l-4 border-emerald-600 hidden">
                     <h3 class="font-black text-xs mb-3 text-emerald-900">Hubungi Admin</h3>
                     <div class="space-y-3">
@@ -252,11 +274,10 @@
 
             </div>
 
-            <!-- TAB 2: PUSAT PANEL (KHUSUS ADMIN) -->
+            <!-- TAB 2: PUSAT PANEL (ADMIN) -->
             <div id="tabPanel" class="hidden space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     
-                    <!-- 1. Pilih Periode & Kontrol Tampil Minggu -->
                     <div class="glass-card p-4 border-l-4 border-red-600">
                         <h3 class="font-black text-xs mb-2.5 text-gray-800">Atur Periode & Publikasi Minggu</h3>
                         <div class="grid grid-cols-2 gap-2.5 mb-3">
@@ -273,7 +294,6 @@
                         </div>
                     </div>
 
-                    <!-- 2. Kelola Crew -->
                     <div class="glass-card p-4 border-l-4 border-red-600">
                         <h3 class="font-black text-xs mb-2 text-gray-800">Kelola Crew</h3>
                         <p class="text-[9px] text-gray-500 mb-2.5">Hapus nama lama jika ingin mengganti dengan nama panjang.</p>
@@ -286,7 +306,6 @@
 
                 </div>
 
-                <!-- 3. FITUR IMPORT & TEMPLATE MASTER EXCEL -->
                 <div class="glass-card p-4 border-l-4 border-blue-600 space-y-3">
                     <h3 class="font-black text-xs text-blue-900">📂 Import / Upload Jadwal dari Excel</h3>
                     <p class="text-[10px] text-gray-500">Unduh template master terlebih dahulu, isi jadwal di Excel, lalu upload kembali ke sini.</p>
@@ -302,7 +321,6 @@
                     </div>
                 </div>
 
-                <!-- Input Shift Massal Harian -->
                 <div class="glass-card p-4 border-l-4 border-red-600">
                     <h3 class="font-black text-xs mb-3 text-gray-800">Input Shift Harian (Semua Crew Sekaligus)</h3>
                     <div class="mb-3">
@@ -313,7 +331,6 @@
                     <button onclick="simpanShiftHarianMasal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 text-xs shadow-md shadow-emerald-500/20">Simpan Shift Semua Crew</button>
                 </div>
 
-                <!-- Panel Persetujuan Request & Izin Admin -->
                 <div class="glass-card p-4 border-l-4 border-gray-600">
                     <h3 class="font-black text-xs mb-3 text-gray-700">Panel Persetujuan Request & Izin Shift</h3>
                     <div id="listRequestContainerAdmin" class="space-y-2.5 max-h-44 overflow-y-auto mb-1"></div>
@@ -349,12 +366,10 @@
 
     <!-- FOOTER COPYRIGHT -->
     <footer class="text-center text-[10px] text-gray-500 mt-8 border-t border-gray-300/60 pt-3">
-        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.7.45
+        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.8.0 Firebase
     </footer>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxei5AEp5qVjiRrrVIVDnW14Rtb3ZVX_3Nd0rjg0nJJqelaPihHRouVvfAAE-FGCK1aVw/exec";
-
         let listCrew = [];
         let scheduleData = {};
         let requestData = [];
@@ -380,50 +395,105 @@
             <option value="IZIN">Izin (Merah) - IZIN</option>
         `;
 
-        function init() {
-            loadDataFromCloud().then(() => {
-                bersihkanRequestKedaluwarsa();
-                setupTahunDropdown();
-                setBulanTahunDefault();
-                updateCrewManager();
-                updateRequestDropdown();
-                setupLoginCrewDropdown();
-                renderAdminWeekToggles();
-                renderTabelBeranda();
-                renderListRequestBeranda();
-                renderListRequestAdmin();
-                renderRekapBulanan();
-                renderFormCrewHarian();
-                
-                let today = parseLocalDate(new Date());
-                document.getElementById('shiftDateTarget').value = today;
-                renderFormCrewHarian();
+        window.initAppAfterFirebase = function() {
+            startRealtimeListener();
+        };
 
-                if (currentRole) {
-                    document.getElementById('sectionLogin').classList.add('hidden');
-                    document.getElementById('btnLogout').classList.remove('hidden');
-                    document.getElementById('containerSubTab').classList.remove('hidden');
-                    document.getElementById('containerFormRequest').classList.remove('hidden');
-                    document.getElementById('containerPapanInfo').classList.remove('hidden');
-                    document.getElementById('containerHubungiWA').classList.remove('hidden');
-
-                    if (currentRole === 'admin') {
-                        document.getElementById('tabBtnPanel').classList.remove('hidden');
-                        document.getElementById('tabBtnRekap').classList.remove('hidden');
-                        document.getElementById('panelShiftAktifCrew').classList.add('hidden');
-                        document.getElementById('wrapperInputCrewAdmin').classList.remove('hidden');
-                        document.getElementById('labelFormRequestTitle').innerText = "Form Request & Izin Shift (Admin / Atas Nama Crew)";
-                    } else {
-                        document.getElementById('tabBtnPanel').classList.add('hidden');
-                        document.getElementById('tabBtnRekap').classList.add('hidden');
-                        document.getElementById('panelShiftAktifCrew').classList.remove('hidden');
-                        document.getElementById('wrapperInputCrewAdmin').classList.add('hidden');
-                        document.getElementById('labelFormRequestTitle').innerText = `Form Request & Izin Shift (${loggedInCrew})`;
-                        setupInactivityTimer();
-                        tampilkanShiftAktifCrewLogins();
-                    }
+        function startRealtimeListener() {
+            let dataRef = window.FB_ref(window.dbRef, 'mixue_app_data');
+            window.FB_onValue(dataRef, (snapshot) => {
+                let val = snapshot.val();
+                if (val) {
+                    listCrew = val.crew || [];
+                    scheduleData = val.schedule || {};
+                    requestData = val.requests || [];
+                    activeWeeks = val.weeks || {};
                 }
+                cekDanHapusDataLamaOtomatis();
+                renderUIComponents();
             });
+        }
+
+        function saveDataToFirebase() {
+            let dataRef = window.FB_ref(window.dbRef, 'mixue_app_data');
+            window.FB_set(dataRef, {
+                crew: listCrew,
+                schedule: scheduleData,
+                requests: requestData,
+                weeks: activeWeeks
+            }).catch(err => {
+                console.error("Gagal simpan ke Firebase:", err);
+            });
+        }
+
+        // FITUR AUTO-CLEANUP DENGAN JEDAH TANGGAL 27 (REKAP AMAN)
+        function cekDanHapusDataLamaOtomatis() {
+            let now = new Date();
+            let day = now.getDate();
+            
+            // Jika tanggal sudah melewati tanggal 27, bersihkan periode bulan sebelumnya yang sudah lewat jauh
+            if (day >= 27) {
+                let m = now.getMonth();
+                let y = now.getFullYear();
+                let currentActivePeriode = getPeriodeKey(m, y);
+
+                let hasChanged = false;
+                Object.keys(scheduleData).forEach(pKey => {
+                    if (pKey !== currentActivePeriode) {
+                        delete scheduleData[pKey];
+                        hasChanged = true;
+                    }
+                });
+
+                if (hasChanged) {
+                    saveDataToFirebase();
+                }
+            }
+        }
+
+        function renderUIComponents() {
+            bersihkanRequestKedaluwarsa();
+            setupTahunDropdown();
+            setBulanTahunDefault();
+            updateCrewManager();
+            updateRequestDropdown();
+            setupLoginCrewDropdown();
+            renderAdminWeekToggles();
+            renderTabelBeranda();
+            renderListRequestBeranda();
+            renderListRequestAdmin();
+            renderRekapBulanan();
+            renderFormCrewHarian();
+            
+            let today = parseLocalDate(new Date());
+            let dateTarget = document.getElementById('shiftDateTarget');
+            if (dateTarget && !dateTarget.value) dateTarget.value = today;
+            renderFormCrewHarian();
+
+            if (currentRole) {
+                document.getElementById('sectionLogin').classList.add('hidden');
+                document.getElementById('btnLogout').classList.remove('hidden');
+                document.getElementById('containerSubTab').classList.remove('hidden');
+                document.getElementById('containerFormRequest').classList.remove('hidden');
+                document.getElementById('containerPapanInfo').classList.remove('hidden');
+                document.getElementById('containerHubungiWA').classList.remove('hidden');
+
+                if (currentRole === 'admin') {
+                    document.getElementById('tabBtnPanel').classList.remove('hidden');
+                    document.getElementById('tabBtnRekap').classList.remove('hidden');
+                    document.getElementById('panelShiftAktifCrew').classList.add('hidden');
+                    document.getElementById('wrapperInputCrewAdmin').classList.remove('hidden');
+                    document.getElementById('labelFormRequestTitle').innerText = "Form Request & Izin Shift (Admin / Atas Nama Crew)";
+                } else {
+                    document.getElementById('tabBtnPanel').classList.add('hidden');
+                    document.getElementById('tabBtnRekap').classList.add('hidden');
+                    document.getElementById('panelShiftAktifCrew').classList.remove('hidden');
+                    document.getElementById('wrapperInputCrewAdmin').classList.add('hidden');
+                    document.getElementById('labelFormRequestTitle').innerText = `Form Request & Izin Shift (${loggedInCrew})`;
+                    setupInactivityTimer();
+                    tampilkanShiftAktifCrewLogins();
+                }
+            }
         }
 
         function bukaFormLogin(tipe) {
@@ -461,44 +531,6 @@
             return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
         }
 
-        function loadDataFromCloud() {
-            return fetch(WEB_APP_URL + "?action=getData")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.crew && data.crew.length > 0) {
-                        listCrew = data.crew.map(x => typeof x === 'object' && x !== null ? (x.name || '') : String(x)).filter(x => x.trim() !== '' && x !== 'undefined');
-                    }
-                    if (data.schedule) scheduleData = data.schedule;
-                    if (data.requests) requestData = data.requests;
-                    if (data.weeks) activeWeeks = data.weeks;
-                    renderListRequestBeranda();
-                    renderListRequestAdmin();
-                })
-                .catch(err => {
-                    console.error("Gagal sinkron cloud:", err);
-                });
-        }
-
-        function saveDataToCloud() {
-            let payload = {
-                action: "saveData",
-                payload: { crew: listCrew, schedule: scheduleData, requests: requestData, weeks: activeWeeks }
-            };
-
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(res => {
-                loadDataFromCloud();
-            })
-            .catch(err => {
-                console.error("Gagal simpan ke cloud:", err);
-            });
-        }
-
         function bersihkanRequestKedaluwarsa() {
             let todayObj = new Date();
             requestData = requestData.filter(req => {
@@ -533,8 +565,10 @@
             for (let y = currentYear - 2; y <= currentYear + 5; y++) {
                 html += `<option value="${y}">${y}</option>`;
             }
-            document.getElementById('selectTahunBeranda').innerHTML = html;
-            document.getElementById('selectTahunPanel').innerHTML = html;
+            let sBeranda = document.getElementById('selectTahunBeranda');
+            let sPanel = document.getElementById('selectTahunPanel');
+            if (sBeranda) sBeranda.innerHTML = html;
+            if (sPanel) sPanel.innerHTML = html;
         }
 
         function setBulanTahunDefault() {
@@ -545,10 +579,15 @@
                 m += 1;
                 if (m > 11) { m = 0; y += 1; }
             }
-            document.getElementById('selectBulanBeranda').value = m;
-            document.getElementById('selectTahunBeranda').value = y;
-            document.getElementById('selectBulanPanel').value = m;
-            document.getElementById('selectTahunPanel').value = y;
+            let sb = document.getElementById('selectBulanBeranda');
+            let tb = document.getElementById('selectTahunBeranda');
+            let sp = document.getElementById('selectBulanPanel');
+            let tp = document.getElementById('selectTahunPanel');
+
+            if (sb && !sb.value) sb.value = m;
+            if (tb && !tb.value) tb.value = y;
+            if (sp && !sp.value) sp.value = m;
+            if (tp && !tp.value) tp.value = y;
         }
 
         function setupLoginCrewDropdown() {
@@ -643,30 +682,7 @@
 
             currentRole = roleTarget;
             localStorage.setItem('sandyrzt_role', currentRole);
-
-            document.getElementById('sectionLogin').classList.add('hidden');
-            document.getElementById('btnLogout').classList.remove('hidden');
-            document.getElementById('containerSubTab').classList.remove('hidden');
-            document.getElementById('containerFormRequest').classList.remove('hidden');
-            document.getElementById('containerPapanInfo').classList.remove('hidden');
-            document.getElementById('containerHubungiWA').classList.remove('hidden');
-
-            if (currentRole === 'admin') {
-                document.getElementById('tabBtnPanel').classList.remove('hidden');
-                document.getElementById('tabBtnRekap').classList.remove('hidden');
-                document.getElementById('panelShiftAktifCrew').classList.add('hidden');
-                document.getElementById('wrapperInputCrewAdmin').classList.remove('hidden');
-                document.getElementById('labelFormRequestTitle').innerText = "Form Request & Izin Shift (Admin / Atas Nama Crew)";
-            } else {
-                document.getElementById('tabBtnPanel').classList.add('hidden');
-                document.getElementById('tabBtnRekap').classList.add('hidden');
-                document.getElementById('panelShiftAktifCrew').classList.remove('hidden');
-                document.getElementById('wrapperInputCrewAdmin').classList.add('hidden');
-                document.getElementById('labelFormRequestTitle').innerText = `Form Request & Izin Shift (${loggedInCrew})`;
-                setupInactivityTimer();
-                tampilkanShiftAktifCrewLogins();
-            }
-            init();
+            renderUIComponents();
         }
 
         function logout() {
@@ -780,7 +796,7 @@
 
         function toggleActiveWeek(mapKey) {
             activeWeeks[mapKey] = !activeWeeks[mapKey];
-            saveDataToCloud();
+            saveDataToFirebase();
             renderTabelBeranda();
         }
 
@@ -863,7 +879,7 @@
                         });
                     }
 
-                    saveDataToCloud();
+                    saveDataToFirebase();
                     renderTabelBeranda();
                     renderRekapBulanan();
                     document.getElementById('excelFileImport').value = '';
@@ -883,7 +899,7 @@
             if (listCrew.includes(name)) return alert('Sudah ada!');
             listCrew.push(name);
             nameInput.value = '';
-            saveDataToCloud();
+            saveDataToFirebase();
             updateCrewManager();
             updateRequestDropdown();
             setupLoginCrewDropdown();
@@ -894,7 +910,7 @@
         function hapusCrew(name) {
             if (confirm(`Yakin ingin menghapus crew "${name}"?`)) {
                 listCrew = listCrew.filter(c => c !== name);
-                saveDataToCloud();
+                saveDataToFirebase();
                 updateCrewManager();
                 updateRequestDropdown();
                 setupLoginCrewDropdown();
@@ -905,6 +921,7 @@
 
         function updateCrewManager() {
             const container = document.getElementById('listCrewContainer');
+            if (!container) return;
             container.innerHTML = '';
             if (listCrew.length === 0) {
                 container.innerHTML = `<span class="text-gray-400 text-[10px]">Belum ada crew.</span>`;
@@ -951,11 +968,12 @@
             }
 
             requestData.push({ id: Date.now(), crew, date, jenis, durasi, backup, status: 'pending' });
-            saveDataToCloud();
+            saveDataToFirebase();
             
             renderListRequestBeranda();
             renderListRequestAdmin();
-            document.getElementById('notifBarRequest').classList.remove('hidden');
+            let notif = document.getElementById('notifBarRequest');
+            if (notif) notif.classList.remove('hidden');
             alert('Request / Izin berhasil dikirim ke Admin!');
         }
 
@@ -994,7 +1012,16 @@
         function hapusRequestCrew(id) {
             if (confirm('Yakin ingin menghapus request ini?')) {
                 requestData = requestData.filter(x => x.id !== id);
-                saveDataToCloud();
+                saveDataToFirebase();
+                renderListRequestBeranda();
+                renderListRequestAdmin();
+            }
+        }
+
+        function hapusRequestAdmin(id) {
+            if (confirm('Yakin ingin menghapus request ini?')) {
+                requestData = requestData.filter(x => x.id !== id);
+                saveDataToFirebase();
                 renderListRequestBeranda();
                 renderListRequestAdmin();
             }
@@ -1100,7 +1127,7 @@
             }
 
             req.status = 'approved';
-            saveDataToCloud();
+            saveDataToFirebase();
             renderListRequestBeranda();
             renderListRequestAdmin();
             renderTabelBeranda();
@@ -1111,7 +1138,7 @@
         function rejectRequest(id) {
             let req = requestData.find(x => x.id === id);
             req.status = 'rejected';
-            saveDataToCloud();
+            saveDataToFirebase();
             renderListRequestBeranda();
             renderListRequestAdmin();
         }
@@ -1119,7 +1146,7 @@
         function resetRequest(id) {
             let req = requestData.find(x => x.id === id);
             req.status = 'pending';
-            saveDataToCloud();
+            saveDataToFirebase();
             renderListRequestBeranda();
             renderListRequestAdmin();
         }
@@ -1174,6 +1201,7 @@
 
         function renderFormCrewHarian() {
             const container = document.getElementById('formCrewHarianContainer');
+            if (!container) return;
             const dateVal = document.getElementById('shiftDateTarget').value;
             if (!dateVal || listCrew.length === 0) {
                 container.innerHTML = `<span class="text-gray-400 text-[10px]">Pilih tanggal & pastikan ada crew.</span>`;
@@ -1196,7 +1224,8 @@
             });
 
             listCrew.forEach(crew => {
-                if (savedDayData[crew]) document.getElementById(`shift_crew_${crew}`).value = savedDayData[crew];
+                let el = document.getElementById(`shift_crew_${crew}`);
+                if (el && savedDayData[crew]) el.value = savedDayData[crew];
             });
         }
 
@@ -1211,15 +1240,16 @@
             if (!scheduleData[periodeKey][dateVal]) scheduleData[periodeKey][dateVal] = {};
 
             listCrew.forEach(crew => {
-                let shiftVal = document.getElementById(`shift_crew_${crew}`).value;
+                let el = document.getElementById(`shift_crew_${crew}`);
+                let shiftVal = el ? el.value : '';
                 if (shiftVal) scheduleData[periodeKey][dateVal][crew] = shiftVal;
                 else delete scheduleData[periodeKey][dateVal][crew];
             });
 
-            saveDataToCloud();
+            saveDataToFirebase();
             renderTabelBeranda();
             renderRekapBulanan();
-            alert('Jadwal harian berhasil disimpan ke server!');
+            alert('Jadwal harian berhasil disimpan ke Firebase!');
         }
 
         function hitungPeriodeDariTanggal(dateObj) {
@@ -1279,6 +1309,7 @@
             let currentPeriode = getPeriodeKey(mEnd, yEnd);
 
             const wrapperTabel = document.getElementById('wrapperTabelBeranda');
+            if (!wrapperTabel) return;
 
             let mStart = mEnd - 1;
             let yStart = yEnd;
@@ -1432,8 +1463,6 @@
             XLSX.utils.book_append_sheet(wb, ws, "Rekap Bulanan");
             XLSX.writeFile(wb, `Rekap_Bulanan_Mixue_Sukorejo_${currentPeriode.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`);
         }
-
-        window.onload = init;
     </script>
 </body>
 </html>
