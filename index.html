@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.3 (Final Sync)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.4 (Published Control)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -90,7 +90,7 @@
             <h1 class="text-base font-black tracking-wider uppercase relative z-10">JADWAL KERJA MIXUE SUKOREJO</h1>
             <div class="flex items-center justify-center gap-1.5 mt-1.5 relative z-10">
                 <span class="w-2 h-2 rounded-full bg-emerald-300 inline-block animate-pulse"></span>
-                <span class="text-[10px] font-semibold text-red-100">Firebase Realtime Connected (v1.8.3)</span>
+                <span class="text-[10px] font-semibold text-red-100">Firebase Realtime Connected (v1.8.4)</span>
             </div>
             <button id="btnLogout" onclick="logout()" class="hidden absolute right-3.5 top-4 bg-black/20 hover:bg-black/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold backdrop-blur transition shadow-sm z-10">Keluar</button>
         </div>
@@ -119,8 +119,8 @@
                 <!-- Pilihan Periode Bulan & Tahun -->
                 <div class="glass-card p-4 border-l-4 border-red-600 flex justify-between items-center">
                     <div>
-                        <h3 class="text-xs font-black text-gray-800">Pilih Periode Bulan</h3>
-                        <span id="labelSubInfoPeriode" class="text-[10px] text-gray-500 font-bold">Jadwal Shift Mingguan Aktif</span>
+                        <h3 class="text-xs font-black text-gray-800">Periode Jadwal Aktif (26 - 25)</h3>
+                        <span id="labelSubInfoPeriode" class="text-[10px] text-gray-500 font-bold">Menampilkan jadwal resmi yang dipublikasikan Admin</span>
                     </div>
                     <div class="flex gap-2">
                         <select id="selectBulanBeranda" onchange="syncPeriodeBeranda()" class="p-2 text-xs font-semibold">
@@ -133,7 +133,7 @@
                 <!-- TABEL JADWAL AKTIF -->
                 <div id="wrapperTabelBeranda" class="glass-card p-4 border-l-4 border-emerald-600">
                     <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-xs font-black text-emerald-800">Jadwal Shift Mingguan</h3>
+                        <h3 class="text-xs font-black text-emerald-800" id="titleTabelBeranda">Jadwal Shift Mingguan</h3>
                         <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 text-[10px] shadow-md shadow-emerald-500/20">Download Excel</button>
                     </div>
                     <div id="weekTabsBeranda" class="flex flex-wrap gap-1.5 mb-3.5 border-b border-gray-200/60 pb-3"></div>
@@ -278,16 +278,25 @@
             <div id="tabPanel" class="hidden space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     
-                    <div class="glass-card p-4 border-l-4 border-red-600">
-                        <h3 class="font-black text-xs mb-2.5 text-gray-800">Atur Periode & Publikasi Minggu</h3>
-                        <div class="grid grid-cols-2 gap-2.5 mb-3">
+                    <div class="glass-card p-4 border-l-4 border-red-600 space-y-3">
+                        <h3 class="font-black text-xs text-gray-800">Atur Periode & Tombol Publikasi Resmi</h3>
+                        <div class="grid grid-cols-2 gap-2.5">
                             <select id="selectBulanPanel" onchange="syncPeriodePanel()" class="p-2.5 text-xs bg-white font-semibold">
                                 <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
                             </select>
                             <select id="selectTahunPanel" onchange="syncPeriodePanel()" class="p-2.5 text-xs bg-white font-semibold"></select>
                         </div>
-                        <span id="labelPeriodePanel" class="text-[10px] font-black text-red-600 block mb-2.5">Periode: -</span>
+                        <span id="labelPeriodePanel" class="text-[10px] font-black text-red-600 block">Periode: -</span>
                         
+                        <!-- TOMBOL PUBLIKASI PERIODE -->
+                        <div class="bg-red-50 border border-red-200 p-3 rounded-2xl flex items-center justify-between gap-2">
+                            <div>
+                                <p class="text-[10px] font-bold text-red-900">Status Tampilan Publik Crew:</p>
+                                <span id="statusPublishLabel" class="text-[10px] font-black text-rose-600">Belum Dipublikasikan</span>
+                            </div>
+                            <button onclick="togglePublishPeriode()" id="btnPublishAction" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 text-[10px] shadow-sm">🚀 Publikasikan Periode Ini</button>
+                        </div>
+
                         <div class="border-t border-gray-200/80 pt-3">
                             <label class="text-[10px] font-bold text-gray-700 block mb-2">Centang Minggu yang Ditampilkan ke Crew:</label>
                             <div id="adminWeekToggles" class="grid grid-cols-2 gap-2 text-[10px]"></div>
@@ -366,7 +375,7 @@
 
     <!-- FOOTER COPYRIGHT -->
     <footer class="text-center text-[10px] text-gray-500 mt-8 border-t border-gray-300/60 pt-3">
-        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.8.3 Firebase
+        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.8.4 Firebase
     </footer>
 
     <script>
@@ -374,6 +383,7 @@
         let scheduleData = {};
         let requestData = [];
         let activeWeeks = {};
+        let publishedPeriods = {}; // Menyimpan status periode mana saja yang sudah di-publish admin
 
         let currentRole = localStorage.getItem('sandyrzt_role') || null;
         let loggedInCrew = localStorage.getItem('sandyrzt_logged_crew') || null;
@@ -408,8 +418,8 @@
                     scheduleData = val.schedule || {};
                     requestData = val.requests || [];
                     activeWeeks = val.weeks || {};
+                    publishedPeriods = val.published || {};
                 }
-                cekDanHapusDataLamaOtomatis();
                 renderUIComponents();
             });
         }
@@ -420,37 +430,14 @@
                 crew: listCrew,
                 schedule: scheduleData,
                 requests: requestData,
-                weeks: activeWeeks
+                weeks: activeWeeks,
+                published: publishedPeriods
             }).catch(err => {
                 console.error("Gagal simpan ke Firebase:", err);
             });
         }
 
-        function cekDanHapusDataLamaOtomatis() {
-            let now = new Date();
-            let day = now.getDate();
-            
-            if (day >= 27) {
-                let m = now.getMonth();
-                let y = now.getFullYear();
-                let currentActivePeriode = getPeriodeKey(m, y);
-
-                let hasChanged = false;
-                Object.keys(scheduleData).forEach(pKey => {
-                    if (pKey !== currentActivePeriode) {
-                        delete scheduleData[pKey];
-                        hasChanged = true;
-                    }
-                });
-
-                if (hasChanged) {
-                    saveDataToFirebase();
-                }
-            }
-        }
-
         function renderUIComponents() {
-            bersihkanRequestKedaluwarsa();
             setupTahunDropdown();
             setBulanTahunDefault();
             updateCrewManager();
@@ -461,20 +448,23 @@
             renderListRequestBeranda();
             renderListRequestAdmin();
             renderRekapBulanan();
-            
+
             let isAdmin = (currentRole === 'admin');
-            let selBulan = document.getElementById('selectBulanBeranda');
-            let selTahun = document.getElementById('selectTahunBeranda');
-            let infoLabel = document.getElementById('labelSubInfoPeriode');
+            let selBulanBeranda = document.getElementById('selectBulanBeranda');
+            let selTahunBeranda = document.getElementById('selectTahunBeranda');
 
             if (!isAdmin) {
-                if (selBulan) selBulan.disabled = true;
-                if (selTahun) selTahun.disabled = true;
-                if (infoLabel) infoLabel.innerText = "Jadwal Shift Mingguan (Published by Admin)";
+                // Kunci dropdown beranda untuk crew agar otomatis mengikuti periode yang dipublikasikan admin terbaru
+                let latestPublished = getLatestPublishedPeriod();
+                if (latestPublished) {
+                    selBulanBeranda.value = latestPublished.month;
+                    selTahunBeranda.value = latestPublished.year;
+                }
+                selBulanBeranda.disabled = true;
+                selTahunBeranda.disabled = true;
             } else {
-                if (selBulan) selBulan.disabled = false;
-                if (selTahun) selTahun.disabled = false;
-                if (infoLabel) infoLabel.innerText = "Jadwal Shift Mingguan Aktif";
+                selBulanBeranda.disabled = false;
+                selTahunBeranda.disabled = false;
             }
 
             let dateTarget = document.getElementById('shiftDateTarget');
@@ -507,6 +497,30 @@
                     tampilkanShiftAktifCrewLogins();
                 }
             }
+        }
+
+        function getLatestPublishedPeriod() {
+            for (let y = 2028; y >= 2025; y--) {
+                for (let m = 11; m >= 0; m--) {
+                    let pKey = getPeriodeKey(m, y);
+                    if (publishedPeriods[pKey]) {
+                        return { month: m, year: y };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function togglePublishPeriode() {
+            let mEnd = parseInt(document.getElementById('selectBulanPanel').value);
+            let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
+            let pKey = getPeriodeKey(mEnd, yEnd);
+
+            publishedPeriods[pKey] = !publishedPeriods[pKey];
+            saveDataToFirebase();
+            renderAdminWeekToggles();
+            renderTabelBeranda();
+            alert(`Periode ${pKey} berhasil ${publishedPeriods[pKey] ? 'DIPUBLIKASIKAN ke Crew' : 'DIBATALKAN PUBLIKASINYA'}!`);
         }
 
         function bukaFormLogin(tipe) {
@@ -544,17 +558,6 @@
             return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
         }
 
-        function bersihkanRequestKedaluwarsa() {
-            let todayObj = new Date();
-            requestData = requestData.filter(req => {
-                let parts = req.date.split('-');
-                let reqDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                let p = hitungPeriodeDariTanggal(reqDateObj);
-                let endPeriodDate = new Date(p.year, p.month, 25, 23, 59, 59);
-                return todayObj <= endPeriodDate;
-            });
-        }
-
         function setupInactivityTimer() {
             resetInactivityTimer();
             window.addEventListener('mousemove', resetInactivityTimer);
@@ -573,7 +576,7 @@
         }
 
         function setupTahunDropdown() {
-            let currentYear = 2026; // Dipatok langsung ke tahun aktif 2026
+            let currentYear = 2026;
             let html = '';
             for (let y = currentYear - 1; y <= currentYear + 3; y++) {
                 html += `<option value="${y}">${y}</option>`;
@@ -585,7 +588,7 @@
         }
 
         function setBulanTahunDefault() {
-            let now = new Date(); // 2026-09-14 (Bulan September = 8)
+            let now = new Date();
             let m = now.getMonth();
             let y = now.getFullYear();
             if (now.getDate() > 25) {
@@ -597,10 +600,10 @@
             let sp = document.getElementById('selectBulanPanel');
             let tp = document.getElementById('selectTahunPanel');
 
-            if (sb) sb.value = m;
-            if (tb) tb.value = y;
-            if (sp) sp.value = m;
-            if (tp) tp.value = y;
+            if (sb && !sb.value) sb.value = m;
+            if (tb && !tb.value) tb.value = y;
+            if (sp && !sp.value) sp.value = m;
+            if (tp && !tp.value) tp.value = y;
         }
 
         function setupLoginCrewDropdown() {
@@ -782,6 +785,22 @@
             let yEnd = parseInt(document.getElementById('selectTahunPanel').value);
             let pKey = getPeriodeKey(mEnd, yEnd);
             document.getElementById('labelPeriodePanel').innerText = `Periode: ${pKey}`;
+
+            let isPublished = publishedPeriods[pKey] || false;
+            let pubLabel = document.getElementById('statusPublishLabel');
+            let pubBtn = document.getElementById('btnPublishAction');
+
+            if (isPublished) {
+                pubLabel.innerText = "✅ SUDAH DIPUBLIKASIKAN";
+                pubLabel.className = "text-[10px] font-black text-emerald-600";
+                pubBtn.innerText = "Batalkan Publikasi";
+                pubBtn.className = "bg-gray-600 hover:bg-gray-700 text-white font-bold px-3 py-2 text-[10px] shadow-sm";
+            } else {
+                pubLabel.innerText = "❌ BELUM DIPUBLIKASIKAN";
+                pubLabel.className = "text-[10px] font-black text-rose-600";
+                pubBtn.innerText = "🚀 Publikasikan Periode Ini";
+                pubBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 text-[10px] shadow-sm";
+            }
 
             let mStart = mEnd - 1;
             let yStart = yEnd;
@@ -1319,12 +1338,36 @@
         }
 
         function renderTabelBeranda() {
-            let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
-            let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
-            let currentPeriode = getPeriodeKey(mEnd, yEnd);
+            let mEnd, yEnd;
+            let isAdmin = currentRole && currentRole === 'admin';
 
+            if (isAdmin) {
+                mEnd = parseInt(document.getElementById('selectBulanPanel').value);
+                yEnd = parseInt(document.getElementById('selectTahunPanel').value);
+            } else {
+                let latest = getLatestPublishedPeriod();
+                if (latest) {
+                    mEnd = latest.month;
+                    yEnd = latest.year;
+                    document.getElementById('selectBulanBeranda').value = mEnd;
+                    document.getElementById('selectTahunBeranda').value = yEnd;
+                } else {
+                    mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
+                    yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
+                }
+            }
+
+            let currentPeriode = getPeriodeKey(mEnd, yEnd);
             const wrapperTabel = document.getElementById('wrapperTabelBeranda');
             if (!wrapperTabel) return;
+
+            // Jika untuk crew, cek apakah periode ini sudah dipublikasikan admin
+            if (!isAdmin && !publishedPeriods[currentPeriode]) {
+                wrapperTabel.classList.add('hidden');
+                return;
+            } else {
+                wrapperTabel.classList.remove('hidden');
+            }
 
             let mStart = mEnd - 1;
             let yStart = yEnd;
@@ -1338,7 +1381,6 @@
             weeks.forEach((wk, wIdx) => {
                 if (wk.length === 0) return;
                 let mapKey = `${currentPeriode}_w${wIdx}`;
-                let isAdmin = currentRole && currentRole === 'admin';
                 if (isAdmin || activeWeeks[mapKey]) {
                     visibleWeeks.push({ weekData: wk, index: wIdx });
                 }
