@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.24</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.32 (Auto-Upload Excel Schedule Fix)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -192,13 +192,14 @@
                         <div id="adminWeekToggles" class="grid grid-cols-2 gap-1.5"></div>
                     </div>
 
-                    <!-- MASTER FILE & UPLOAD EXCEL -->
+                    <!-- MASTER FILE & UPLOAD EXCEL OTOMATIS -->
                     <div class="border-t pt-2 space-y-2">
-                        <label class="font-bold block text-emerald-700 uppercase">📁 Master File & Upload Excel:</label>
+                        <label class="font-bold block text-emerald-700 uppercase">📁 Master File & Upload Jadwal Excel:</label>
                         <div class="flex gap-2">
-                            <button onclick="downloadMasterFile()" class="flex-1 bg-emerald-600 text-white font-bold py-2">Unduh Master</button>
-                            <input type="file" accept=".xlsx, .xls" onchange="uploadMasterFileExcel(event)" class="flex-1 p-1 text-[9px]">
+                            <button onclick="downloadMasterFile()" class="flex-1 bg-emerald-600 text-white font-bold py-2">Unduh Format</button>
+                            <input type="file" accept=".xlsx, .xls" onchange="uploadMasterFileExcel(event)" class="flex-1 p-1 text-[9px] bg-white">
                         </div>
+                        <p class="text-[9px] text-gray-500 italic">*Format Excel: Kolom 1 = Tanggal (YYYY-MM-DD), Kolom berikutnya = Nama Crew berisi nilai shift.</p>
                     </div>
 
                     <!-- INPUT JADWAL MANUAL PER-CREW SATUAN -->
@@ -329,7 +330,7 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.24</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.32</p>
         </div>
 
     </div>
@@ -1036,13 +1037,20 @@
 
         function downloadMasterFile() {
             let wb = XLSX.utils.book_new();
-            let wsData = [["REKAPITULASI MASTER JADWAL KERJA MIXUE SUKOREJO"]];
-            wsData.push(["Crew", "Total Masuk", "Total Izin", "Total Lembur"]);
-            listCrew.forEach(c => wsData.push([c, 0, 0, 0]));
-            
+            let wsData = [["Tanggal", "Sandi", "Monica", "Izza", "There", "Catur"]];
+            let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
+            let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
+            let mStart = mEnd - 1, yStart = yEnd;
+            if (mStart < 0) { mStart = 11; yStart -= 1; }
+            let curr = new Date(yStart, mStart, 26);
+            let end = new Date(yEnd, mEnd, 25);
+            while(curr <= end) {
+                wsData.push([curr.toISOString().split('T')[0], "Pagi Kuning", "Libur Hitam", "Pagi Biru", "Siang Biru", "Pagi Kuning"]);
+                curr.setDate(curr.getDate() + 1);
+            }
             let ws = XLSX.utils.aoa_to_sheet(wsData);
-            XLSX.utils.book_append_sheet(wb, ws, "Master Rekap");
-            XLSX.writeFile(wb, "Master_Jadwal_Mixue_Sukorejo.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Format Jadwal");
+            XLSX.writeFile(wb, "Format_Upload_Jadwal_Mixue.xlsx");
         }
 
         function uploadMasterFileExcel(e) {
@@ -1050,11 +1058,56 @@
             if(!file) return;
             let reader = new FileReader();
             reader.onload = function(evt) {
-                let data = new Uint8Array(evt.target.result);
-                let workbook = XLSX.read(data, {type: 'array'});
-                let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                let rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-                alert('Master file Excel berhasil diunggah dan dibaca!');
+                try {
+                    let data = new Uint8Array(evt.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    let rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    if(rows.length < 2) return alert('File Excel kosong atau tidak valid.');
+                    
+                    let headers = rows[0];
+                    let crewNames = headers.slice(1); // Kolom setelah tanggal adalah nama crew
+                    
+                    let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
+                    let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
+                    let pKey = getPeriodeKey(mEnd, yEnd);
+                    
+                    if(!scheduleData[pKey]) scheduleData[pKey] = {};
+                    
+                    for(let i = 1; i < rows.length; i++) {
+                        let row = rows[i];
+                        let tgl = row[0];
+                        if(!tgl) continue;
+                        
+                        // Handle format tanggal excel / string
+                        if(typeof tgl === 'number') {
+                            let utc_days = Math.floor(tgl - 25569);
+                            let utc_value = utc_days * 86400;
+                            let date_info = new Date(utc_value * 1000);
+                            tgl = date_info.toISOString().split('T')[0];
+                        }
+                        
+                        if(!scheduleData[pKey][tgl]) scheduleData[pKey][tgl] = {};
+                        
+                        for(let j = 1; j < headers.length; j++) {
+                            let cName = headers[j];
+                            let shiftVal = row[j];
+                            if(cName && shiftVal) {
+                                scheduleData[pKey][tgl][cName] = shiftVal;
+                                if(!listCrew.includes(cName)) listCrew.push(cName);
+                            }
+                        }
+                    }
+                    
+                    saveData();
+                    renderTabelBeranda();
+                    renderCardHarian();
+                    alert('Jadwal berhasil diunggah dan otomatis masuk ke sistem untuk periode ini!');
+                } catch(err) {
+                    console.error(err);
+                    alert('Gagal membaca file Excel. Pastikan format sesuai.');
+                }
             };
             reader.readAsArrayBuffer(file);
         }
