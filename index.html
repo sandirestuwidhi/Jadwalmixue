@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.42 (Conditional WhatsApp Popup)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.43 (Auto Schedule on Request Approval)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -304,7 +304,7 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.42</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.43</p>
         </div>
 
     </div>
@@ -1014,10 +1014,82 @@
         }
 
         function ubahStatusRequest(index, status) {
-            requestData[index].status = status;
+            let req = requestData[index];
+            req.status = status;
+
+            // JIKA ADMIN MENYETUJUI (Disetujui), OTOMATIS MASUKKAN KE JADWAL UTAMA BERDASARKAN TANGGAL & NAMA CREW
+            if (status === 'Disetujui') {
+                let targetDate = req.date;
+                let crewName = req.crew;
+                let jenisReq = req.jenis; // Contoh: "Request Shift Siang Kuning", "Request Libur", "Izin Sakit", dll.
+
+                // Tentukan shift mapping otomatis
+                let mappedShift = "";
+                if (jenisReq.includes('Pagi Kuning')) mappedShift = "Pagi Kuning";
+                else if (jenisReq.includes('Pagi Biru')) mappedShift = "Pagi Biru";
+                else if (jenisReq.includes('Siang Kuning')) mappedShift = "Siang Kuning";
+                else if (jenisReq.includes('Siang Biru')) mappedShift = "Siang Biru";
+                else if (jenisReq.includes('Middle Ungu')) mappedShift = "Middle Ungu";
+                else if (jenisReq.includes('SWC Oren')) mappedShift = "SWC Oren";
+                else if (jenisReq.includes('PWC Pink')) mappedShift = "PWC Pink";
+                else if (jenisReq.includes('Lemburan Hijau')) mappedShift = "Lemburan Hijau";
+                else if (jenisReq.includes('Libur')) mappedShift = "Libur Hitam";
+                else if (jenisReq.includes('Sakit') || jenisReq.includes('Izin')) mappedShift = "IZIN";
+
+                if (mappedShift && targetDate && crewName) {
+                    // Cari periode berdasarkan tanggal request (format YYYY-MM-DD)
+                    let dParts = targetDate.split('-');
+                    let reqYear = parseInt(dParts[0]);
+                    let reqMonth = parseInt(dParts[1]) - 1;
+                    let reqDay = parseInt(dParts[2]);
+
+                    // Tentukan periode (26 bln sebelumnya s.d 25 bln tsb)
+                    let mEnd = reqMonth;
+                    let yEnd = reqYear;
+                    if (reqDay >= 26) {
+                        mEnd = reqMonth + 1;
+                        if (mEnd > 11) { mEnd = 0; yEnd += 1; }
+                    }
+                    let pKey = getPeriodeKey(mEnd, yEnd);
+
+                    if (!scheduleData[pKey]) scheduleData[pKey] = {};
+                    if (!scheduleData[pKey][targetDate]) scheduleData[pKey][targetDate] = {};
+
+                    // Handle durasi jika lebih dari 1 hari (khusus Izin/Keperluan lainnya jika pakai berapa hari)
+                    let jmlHari = parseInt(req.jmlHari || 1);
+                    let currDateObj = new Date(reqYear, reqMonth, reqDay);
+
+                    for (let i = 0; i < jmlHari; i++) {
+                        let dateStr = formatDateLocal(currDateObj);
+                        
+                        // Cari ulang periode untuk setiap tanggal increment
+                        let cYear = currDateObj.getFullYear();
+                        let cMonth = currDateObj.getMonth();
+                        let cDay = currDateObj.getDate();
+                        let subMEnd = cMonth;
+                        let subYEnd = cYear;
+                        if (cDay >= 26) {
+                            subMEnd = cMonth + 1;
+                            if (subMEnd > 11) { subMEnd = 0; subYEnd += 1; }
+                        }
+                        let subPKey = getPeriodeKey(subMEnd, subYEnd);
+
+                        if (!scheduleData[subPKey]) scheduleData[subPKey] = {};
+                        if (!scheduleData[subPKey][dateStr]) scheduleData[subPKey][dateStr] = {};
+
+                        scheduleData[subPKey][dateStr][crewName] = mappedShift;
+
+                        currDateObj.setDate(currDateObj.getDate() + 1);
+                    }
+                }
+            }
+
             saveData();
+            renderTabelBeranda();
+            renderCardHarian();
             renderAdminRequestsPage();
             renderPapanInfo();
+            if(!document.getElementById('page-rekap').classList.contains('hidden')) renderRekapDetail();
         }
 
         function hapusRequest(index) {
