@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.1 (Firebase Fixed)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.2 (Fixed)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -90,7 +90,7 @@
             <h1 class="text-base font-black tracking-wider uppercase relative z-10">JADWAL KERJA MIXUE SUKOREJO</h1>
             <div class="flex items-center justify-center gap-1.5 mt-1.5 relative z-10">
                 <span class="w-2 h-2 rounded-full bg-emerald-300 inline-block animate-pulse"></span>
-                <span class="text-[10px] font-semibold text-red-100">Firebase Realtime Connected (v1.8.1)</span>
+                <span class="text-[10px] font-semibold text-red-100">Firebase Realtime Connected (v1.8.2)</span>
             </div>
             <button id="btnLogout" onclick="logout()" class="hidden absolute right-3.5 top-4 bg-black/20 hover:bg-black/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold backdrop-blur transition shadow-sm z-10">Keluar</button>
         </div>
@@ -120,7 +120,7 @@
                 <div class="glass-card p-4 border-l-4 border-red-600 flex justify-between items-center">
                     <div>
                         <h3 class="text-xs font-black text-gray-800">Pilih Periode Bulan</h3>
-                        <span class="text-[10px] text-gray-500 font-bold">Jadwal Shift Mingguan Aktif</span>
+                        <span id="labelSubInfoPeriode" class="text-[10px] text-gray-500 font-bold">Jadwal Shift Mingguan Aktif</span>
                     </div>
                     <div class="flex gap-2">
                         <select id="selectBulanBeranda" onchange="syncPeriodeBeranda()" class="p-2 text-xs font-semibold">
@@ -366,7 +366,7 @@
 
     <!-- FOOTER COPYRIGHT -->
     <footer class="text-center text-[10px] text-gray-500 mt-8 border-t border-gray-300/60 pt-3">
-        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.8.1 Firebase
+        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.8.2 Firebase
     </footer>
 
     <script>
@@ -461,11 +461,26 @@
             renderListRequestBeranda();
             renderListRequestAdmin();
             renderRekapBulanan();
-            renderFormCrewHarian();
             
-            let today = parseLocalDate(new Date());
+            let isAdmin = (currentRole === 'admin');
+            let selBulan = document.getElementById('selectBulanBeranda');
+            let selTahun = document.getElementById('selectTahunBeranda');
+            let infoLabel = document.getElementById('labelSubInfoPeriode');
+
+            if (!isAdmin) {
+                if (selBulan) selBulan.disabled = true;
+                if (selTahun) selTahun.disabled = true;
+                if (infoLabel) infoLabel.innerText = "Jadwal Shift Mingguan (Published by Admin)";
+            } else {
+                if (selBulan) selBulan.disabled = false;
+                if (selTahun) selTahun.disabled = false;
+                if (infoLabel) infoLabel.innerText = "Jadwal Shift Mingguan Aktif";
+            }
+
             let dateTarget = document.getElementById('shiftDateTarget');
-            if (dateTarget && !dateTarget.value) dateTarget.value = today;
+            if (dateTarget && !dateTarget.value) {
+                dateTarget.value = parseLocalDate(new Date());
+            }
             renderFormCrewHarian();
 
             if (currentRole) {
@@ -702,7 +717,7 @@
             document.getElementById('tabRekap').classList.add('hidden');
             document.getElementById('tabBeranda').classList.remove('hidden');
 
-            renderTabelBeranda();
+            renderUIComponents();
         }
 
         function switchTab(tab) {
@@ -756,6 +771,7 @@
             document.getElementById('selectTahunBeranda').value = y;
             renderAdminWeekToggles();
             renderTabelBeranda();
+            renderFormCrewHarian();
         }
 
         function renderAdminWeekToggles() {
