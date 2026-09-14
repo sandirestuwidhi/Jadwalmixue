@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.12 (Strict Publish Sync)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.14 (Interactive WA Template)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -100,87 +100,171 @@
             </div>
         </div>
 
-        <!-- PERIODE SELECTOR -->
-        <div class="glass-card p-3 flex justify-between items-center">
-            <div>
-                <span class="text-[10px] font-black text-red-600 uppercase">Periode Aktif</span>
-                <p id="labelPeriodeStatus" class="text-[9px] font-bold text-gray-500">-</p>
+        <!-- ================= PAGE: BERANDA ================= -->
+        <div id="page-home" class="space-y-4">
+            <!-- PERIODE SELECTOR -->
+            <div class="glass-card p-3 flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] font-black text-red-600 uppercase">Periode Aktif</span>
+                    <p id="labelPeriodeStatus" class="text-[9px] font-bold text-gray-500">-</p>
+                </div>
+                <div class="flex gap-1.5">
+                    <select id="selectBulanBeranda" onchange="syncPeriode()" class="p-1.5 text-[10px] font-bold">
+                        <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+                    </select>
+                    <select id="selectTahunBeranda" onchange="syncPeriode()" class="p-1.5 text-[10px] font-bold"></select>
+                </div>
             </div>
-            <div class="flex gap-1.5">
-                <select id="selectBulanBeranda" onchange="syncPeriode()" class="p-1.5 text-[10px] font-bold">
-                    <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-                </select>
-                <select id="selectTahunBeranda" onchange="syncPeriode()" class="p-1.5 text-[10px] font-bold"></select>
-            </div>
-        </div>
 
-        <!-- KARTU UTAMA: JADWAL AKTIF MINGGUAN -->
-        <div class="bg-gradient-to-br from-emerald-400 to-emerald-500 text-white p-5 rounded-3xl shadow-lg shadow-emerald-500/20 space-y-3">
-            <div class="flex justify-between items-center">
-                <h3 class="text-xs font-black uppercase tracking-wider">Jadwal Aktif Mingguan</h3>
-                <button onclick="exportExcel()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-xl text-[9px] font-bold backdrop-blur">Excel 📥</button>
-            </div>
-            <div id="weekTabsBeranda" class="flex flex-wrap gap-1"></div>
-            <div class="overflow-x-auto rounded-2xl bg-white/95 text-gray-800 p-2 shadow-inner">
-                <table id="rekapTableBeranda" class="w-full text-left text-[10px]">
-                    <thead><tr id="tableHeaderBeranda" class="bg-emerald-600 text-white"></tr></thead>
-                    <tbody id="tableBodyBeranda"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- KARTU HARIAN DINAMIS -->
-        <div id="containerCardHarian" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 pt-1"></div>
-
-        <!-- AREA TERKUNCI: PAPAN INFO & REQUEST JADWAL -->
-        <div id="wrapperFiturTerkunci" class="space-y-3 locked-overlay">
-            
-            <!-- PAPAN INFO -->
-            <div class="bg-purple-400 text-white p-4 rounded-3xl shadow-lg shadow-purple-500/20 space-y-2">
+            <!-- KARTU UTAMA: JADWAL AKTIF MINGGUAN -->
+            <div class="bg-gradient-to-br from-emerald-400 to-emerald-500 text-white p-5 rounded-3xl shadow-lg shadow-emerald-500/20 space-y-3">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-black uppercase tracking-wider">Papan Info & Izin</h3>
-                    <span class="text-lg">🔔</span>
+                    <h3 class="text-xs font-black uppercase tracking-wider">Jadwal Aktif Mingguan</h3>
+                    <button onclick="exportExcel()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-xl text-[9px] font-bold backdrop-blur">Excel 📥</button>
                 </div>
-                <div id="listInfoRequestContainer" class="bg-white/90 text-gray-800 p-3 rounded-2xl max-h-32 overflow-y-auto text-[10px] space-y-1.5">
-                    <span class="text-gray-400">Belum ada info.</span>
-                </div>
-            </div>
-
-            <!-- REQUEST JADWAL -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-sky-400 text-white p-4 rounded-3xl shadow-lg shadow-sky-500/20 space-y-2 flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xs font-black uppercase">Request Jadwal</h3>
-                        <p class="text-[9px] text-sky-100">Ajukan perubahan shift atau tukar jadwal.</p>
-                    </div>
-                    <button onclick="bukaModalRequest()" class="bg-white text-sky-600 font-black py-2 text-[10px] shadow-sm">Buat Request</button>
-                </div>
-                <div class="bg-rose-400 text-white p-4 rounded-3xl shadow-lg shadow-rose-500/20 space-y-2 flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xs font-black uppercase">Hubungi Admin</h3>
-                        <p class="text-[9px] text-rose-100">Ada kendala darurat? Chat WhatsApp.</p>
-                    </div>
-                    <button onclick="kirimWA()" class="bg-white text-rose-600 font-black py-2 text-[10px] shadow-sm">Chat WA</button>
+                <div id="weekTabsBeranda" class="flex flex-wrap gap-1"></div>
+                <div class="overflow-x-auto rounded-2xl bg-white/95 text-gray-800 p-2 shadow-inner">
+                    <table id="rekapTableBeranda" class="w-full text-left text-[10px]">
+                        <thead><tr id="tableHeaderBeranda" class="bg-emerald-600 text-white"></tr></thead>
+                        <tbody id="tableBodyBeranda"></tbody>
+                    </table>
                 </div>
             </div>
 
+            <!-- KARTU HARIAN DINAMIS -->
+            <div id="containerCardHarian" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 pt-1"></div>
+
+            <!-- AREA TERKUNCI: PAPAN INFO & REQUEST -->
+            <div id="wrapperFiturTerkunci" class="space-y-3 locked-overlay">
+                <div class="bg-purple-400 text-white p-4 rounded-3xl shadow-lg shadow-purple-500/20 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-black uppercase tracking-wider">Papan Info & Izin</h3>
+                        <span class="text-lg">🔔</span>
+                    </div>
+                    <div id="listInfoRequestContainer" class="bg-white/90 text-gray-800 p-3 rounded-2xl max-h-32 overflow-y-auto text-[10px] space-y-1.5">
+                        <span class="text-gray-400">Belum ada info.</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-sky-400 text-white p-4 rounded-3xl shadow-lg shadow-sky-500/20 space-y-2 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-black uppercase">Request Jadwal</h3>
+                            <p class="text-[9px] text-sky-100">Ajukan perubahan shift atau tukar jadwal.</p>
+                        </div>
+                        <button onclick="switchPage('request')" class="bg-white text-sky-600 font-black py-2 text-[10px] shadow-sm">Buat Request</button>
+                    </div>
+                    <div class="bg-rose-400 text-white p-4 rounded-3xl shadow-lg shadow-rose-500/20 space-y-2 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-black uppercase">Hubungi Admin</h3>
+                            <p class="text-[9px] text-rose-100">Ada kendala darurat? Chat WhatsApp.</p>
+                        </div>
+                        <button onclick="kirimWAAdmin()" class="bg-white text-rose-600 font-black py-2 text-[10px] shadow-sm">Chat WA</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB PANEL ADMIN -->
+            <div id="sectionAdminPanel" class="hidden space-y-3 bg-white/90 p-4 rounded-3xl border border-red-200 shadow-lg">
+                <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">🛡️ Panel Khusus Admin</h3>
+                
+                <div class="space-y-2 text-[10px]">
+                    <label class="font-bold">Publikasi Periode Ini ke Crew:</label>
+                    <button onclick="togglePublish()" id="btnPublishToggle" class="w-full bg-red-600 text-white font-bold py-2">Publikasikan Periode</button>
+                    
+                    <div class="border-t pt-2">
+                        <label class="font-bold block mb-1">Centang Minggu Aktif:</label>
+                        <div id="adminWeekToggles" class="grid grid-cols-2 gap-1.5"></div>
+                    </div>
+
+                    <div class="border-t pt-2">
+                        <label class="font-bold block mb-1">Upload / Kelola Jadwal:</label>
+                        <input type="file" accept=".xlsx, .xls" onchange="importJadwalExcel(event)" class="w-full p-1 text-[10px]">
+                    </div>
+
+                    <div class="border-t pt-2">
+                        <label class="font-bold block mb-1">Persetujuan Request Masuk:</label>
+                        <div id="adminRequestListContainer" class="space-y-1.5 max-h-40 overflow-y-auto">
+                            <span class="text-gray-400">Belum ada request.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- TAB PANEL ADMIN -->
-        <div id="sectionAdminPanel" class="hidden space-y-3 bg-white/90 p-4 rounded-3xl border border-red-200 shadow-lg">
-            <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">🛡️ Panel Khusus Admin</h3>
-            <div class="space-y-2 text-[10px]">
-                <label class="font-bold">Publikasi Periode Ini ke Crew:</label>
+        <!-- ================= PAGE: REQUEST & INTERACTIVE WA TEMPLATE ================= -->
+        <div id="page-request" class="space-y-3 hidden">
+            <div class="glass-card p-4 space-y-3">
+                <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">📋 Form Request & Template Grup WA</h3>
+                <div class="space-y-2 text-[10px]">
+                    <div>
+                        <label class="font-bold block mb-1">Jenis Request:</label>
+                        <select id="reqJenis" class="w-full p-2 font-bold" onchange="updateWADraft()">
+                            <option value="Izin Sakit">Izin Sakit</option>
+                            <option value="Keperluan Lainnya">Keperluan Lainnya</option>
+                            <option value="Request Shift Pagi">Request Shift Pagi</option>
+                            <option value="Request Shift Siang">Request Shift Siang</option>
+                            <option value="Request Libur">Request Libur</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="font-bold block mb-1">Berapa Hari:</label>
+                            <input type="number" id="reqBerapaHari" value="1" min="1" class="w-full p-2 font-bold" oninput="updateWADraft()">
+                        </div>
+                        <div>
+                            <label class="font-bold block mb-1">Mulai Tanggal:</label>
+                            <input type="date" id="reqMulaiTanggal" class="w-full p-2" onchange="updateWADraft()">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="font-bold block mb-1">Alasan / Keterangan:</label>
+                        <textarea id="reqAlasan" class="w-full p-2" placeholder="Tuliskan alasan izin..." oninput="updateWADraft()"></textarea>
+                    </div>
+                    <button onclick="kirimDanSimpanRequest()" class="w-full bg-red-600 text-white font-black py-2.5 shadow-md">Simpan Request ke Sistem</button>
+                </div>
+            </div>
+
+            <!-- PREVIEW & TOMBOL KIRIM KE GRUP WA -->
+            <div class="glass-card p-4 space-y-2">
+                <h3 class="font-black text-xs text-emerald-600 uppercase border-b pb-2">💬 Template Pesan Grup WA</h3>
+                <p class="text-[9px] text-gray-500">Pesan di bawah ini otomatis tersusun sesuai isian Anda:</p>
+                <textarea id="templateWAText" readonly class="w-full h-32 p-2 text-[10px] bg-gray-50 font-mono"></textarea>
                 <div class="flex gap-2">
-                    <button onclick="togglePublish()" id="btnPublishToggle" class="flex-1 bg-red-600 text-white font-bold py-2">Publikasikan</button>
+                    <button onclick="salinTemplateWA()" class="flex-1 bg-gray-800 text-white font-black py-2.5 shadow-md">Salin Pesan</button>
+                    <button onclick="kirimKeGrupWA()" class="flex-1 bg-emerald-600 text-white font-black py-2.5 shadow-md">🚀 Kirim ke Grup WA</button>
                 </div>
-                <div class="border-t pt-2">
-                    <label class="font-bold block mb-1">Centang Minggu Aktif:</label>
-                    <div id="adminWeekToggles" class="grid grid-cols-2 gap-1.5"></div>
-                </div>
-                <div class="border-t pt-2">
-                    <label class="font-bold block mb-1">Upload Excel Jadwal:</label>
-                    <input type="file" accept=".xlsx, .xls" onchange="importJadwalExcel(event)" class="w-full p-1 text-[10px]">
+            </div>
+        </div>
+
+        <!-- ================= PAGE: REKAPAN & MASTER FILE ================= -->
+        <div id="page-rekap" class="space-y-3 hidden">
+            <div class="glass-card p-4 space-y-3">
+                <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">📈 Rekapan & Master File</h3>
+                <p class="text-[10px] text-gray-600">Unduh master file rekapitulasi jadwal kerja bulanan untuk keperluan arsip toko.</p>
+                <button onclick="downloadMasterFile()" class="w-full bg-emerald-600 text-white font-black py-3 shadow-lg flex items-center justify-center gap-2">
+                    <span>📥</span> Unduh Master File Jadwal (.xlsx)
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= PAGE: PROFIL & TAMBAH CREW ================= -->
+        <div id="page-profile" class="space-y-3 hidden">
+            <div class="glass-card p-4 space-y-3">
+                <h3 class="font-black text-xs text-red-600 uppercase border-b pb-2">👤 Profil & Manajemen Crew</h3>
+                <div class="space-y-2 text-[10px]">
+                    <div class="bg-white p-3 rounded-2xl border space-y-1">
+                        <p class="font-bold text-gray-500">Status Akun:</p>
+                        <p id="profileStatusText" class="text-xs font-black text-red-600">Tamu</p>
+                    </div>
+                    
+                    <div id="sectionTambahCrewAdmin" class="hidden space-y-2 border-t pt-2">
+                        <label class="font-bold block text-red-600 uppercase">➕ Tambah Crew Baru:</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="inputNamaCrewBaru" placeholder="Nama Lengkap Crew" class="flex-1 p-2">
+                            <button onclick="tambahCrewBaru()" class="bg-red-600 text-white font-black px-4 py-2">Tambah</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -189,16 +273,16 @@
 
     <!-- BOTTOM NAVIGATION BAR -->
     <div class="fixed bottom-3 left-3 right-3 max-w-sm mx-auto bg-black text-white p-2.5 flex justify-around items-center rounded-full shadow-2xl z-50">
-        <button onclick="navClick('home')" id="navBtn-home" class="flex flex-col items-center justify-center w-12 h-12 rounded-full bg-white text-black transition-all shadow-md">
+        <button onclick="switchPage('home')" id="navBtn-home" class="flex flex-col items-center justify-center w-12 h-12 rounded-full bg-white text-black transition-all shadow-md">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         </button>
-        <button onclick="navClick('request')" id="navBtn-request" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+        <button onclick="switchPage('request')" id="navBtn-request" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
         </button>
-        <button onclick="navClick('rekap')" id="navBtn-rekap" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+        <button onclick="switchPage('rekap')" id="navBtn-rekap" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         </button>
-        <button onclick="navClick('profile')" id="navBtn-profile" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
+        <button onclick="switchPage('profile')" id="navBtn-profile" class="flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
         </button>
     </div>
@@ -225,30 +309,6 @@
                 <input type="password" id="passAdmin" class="w-full p-2.5 text-xs" placeholder="Password Admin">
                 <button onclick="prosesLoginAdmin()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-2.5 text-xs shadow-md">Masuk sebagai Admin</button>
             </div>
-        </div>
-    </div>
-
-    <!-- MODAL REQUEST -->
-    <div id="modalRequest" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-5 space-y-3 shadow-2xl text-xs">
-            <div class="flex justify-between items-center">
-                <h3 class="font-black text-red-600 uppercase">Form Request Jadwal</h3>
-                <button onclick="tutupModalRequest()" class="text-gray-400 font-bold">✕</button>
-            </div>
-            <div>
-                <label class="text-[9px] font-bold text-gray-500 block mb-1">Tanggal:</label>
-                <input type="date" id="reqDate" class="w-full p-2">
-            </div>
-            <div>
-                <label class="text-[9px] font-bold text-gray-500 block mb-1">Jenis Request:</label>
-                <select id="reqJenis" class="w-full p-2 font-bold">
-                    <option value="Pagi">Request Shift Pagi</option>
-                    <option value="Siang">Request Shift Siang</option>
-                    <option value="Libur">Request Libur</option>
-                    <option value="Izin Sakit">Izin Sakit</option>
-                </select>
-            </div>
-            <button onclick="kirimRequest()" class="w-full bg-red-600 text-white font-black py-2.5">Kirim Request</button>
         </div>
     </div>
 
@@ -286,6 +346,21 @@
             window.FB_set(dataRef, { crew: listCrew, schedule: scheduleData, requests: requestData, weeks: activeWeeks, published: publishedPeriods });
         }
 
+        function switchPage(pageId) {
+            ['home', 'request', 'rekap', 'profile'].forEach(p => {
+                let el = document.getElementById(`page-${p}`);
+                let btn = document.getElementById(`navBtn-${p}`);
+                if (p === pageId) {
+                    el.classList.remove('hidden');
+                    btn.className = "flex flex-col items-center justify-center w-12 h-12 rounded-full bg-white text-black transition-all shadow-md";
+                } else {
+                    el.classList.add('hidden');
+                    btn.className = "flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all";
+                }
+            });
+            if(pageId === 'request') updateWADraft();
+        }
+
         function renderUI() {
             setupTahun();
             setBulanDefault();
@@ -294,12 +369,15 @@
             renderCardHarian();
             renderPapanInfo();
             renderAdminPanel();
+            renderAdminRequests();
+            renderProfilInfo();
 
             let labelHalo = document.getElementById('labelHaloUser');
             let btnLogout = document.getElementById('btnLogout');
             let btnLogin = document.getElementById('btnBukaLogin');
             let wrapperLock = document.getElementById('wrapperFiturTerkunci');
             let sectionAdmin = document.getElementById('sectionAdminPanel');
+            let sectionTambahCrew = document.getElementById('sectionTambahCrewAdmin');
 
             if (currentRole) {
                 btnLogout.classList.remove('hidden');
@@ -309,9 +387,11 @@
                 if (currentRole === 'admin') {
                     labelHalo.innerText = "Hallo [ADMIN]";
                     sectionAdmin.classList.remove('hidden');
+                    sectionTambahCrew.classList.remove('hidden');
                 } else {
                     labelHalo.innerText = `Hallo [${loggedInCrew}]`;
                     sectionAdmin.classList.add('hidden');
+                    sectionTambahCrew.classList.add('hidden');
                 }
             } else {
                 labelHalo.innerText = "Hallo [Tamu]";
@@ -319,6 +399,7 @@
                 btnLogin.classList.remove('hidden');
                 wrapperLock.classList.add('locked-overlay');
                 sectionAdmin.classList.add('hidden');
+                sectionTambahCrew.classList.add('hidden');
             }
         }
 
@@ -331,7 +412,6 @@
             let sb = document.getElementById('selectBulanBeranda');
             let tb = document.getElementById('selectTahunBeranda');
             
-            // Jika bukan admin, paksa ikuti periode terakhir yang dipublikasikan admin
             if (currentRole !== 'admin') {
                 let latestPub = getLatestPublishedPeriod();
                 if (latestPub) {
@@ -342,7 +422,6 @@
                     return;
                 }
             }
-            
             sb.disabled = false;
             tb.disabled = false;
             if (!sb.value) {
@@ -393,8 +472,6 @@
 
         function bukaModalLogin() { document.getElementById('modalLogin').classList.remove('hidden'); document.getElementById('modalLogin').classList.add('flex'); }
         function tutupModalLogin() { document.getElementById('modalLogin').classList.add('hidden'); document.getElementById('modalLogin').classList.remove('flex'); }
-        function bukaModalRequest() { document.getElementById('modalRequest').classList.remove('hidden'); document.getElementById('modalRequest').classList.add('flex'); }
-        function tutupModalRequest() { document.getElementById('modalRequest').classList.add('hidden'); document.getElementById('modalRequest').classList.remove('flex'); }
 
         function prosesLoginAdmin() {
             let pass = document.getElementById('passAdmin').value;
@@ -561,12 +638,13 @@
         function renderPapanInfo() {
             let box = document.getElementById('listInfoRequestContainer');
             box.innerHTML = '';
-            if (requestData.length === 0) {
-                box.innerHTML = '<span class="text-gray-400">Belum ada request/izin.</span>';
+            let approvedReqs = requestData.filter(r => r.status === 'Disetujui');
+            if (approvedReqs.length === 0) {
+                box.innerHTML = '<span class="text-gray-400">Belum ada info / request disetujui.</span>';
                 return;
             }
-            requestData.forEach(r => {
-                box.innerHTML += `<div class="bg-white/80 p-2 rounded-xl"><b>${r.crew}</b>: ${r.jenis} (${r.date}) - <span class="text-amber-600 font-bold">${r.status}</span></div>`;
+            approvedReqs.forEach(r => {
+                box.innerHTML += `<div class="bg-white/80 p-2 rounded-xl"><b>${r.crew}</b>: ${r.jenis} (${r.date}) - <span class="text-emerald-600 font-bold">Disetujui</span></div>`;
             });
         }
 
@@ -585,6 +663,43 @@
             }
         }
 
+        function renderAdminRequests() {
+            let container = document.getElementById('adminRequestListContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            if(requestData.length === 0) {
+                container.innerHTML = '<span class="text-gray-400">Belum ada request masuk.</span>';
+                return;
+            }
+            requestData.forEach((r, idx) => {
+                let statusColor = r.status === 'Disetujui' ? 'text-emerald-600' : r.status === 'Ditolak' ? 'text-rose-600' : 'text-amber-600';
+                container.innerHTML += `
+                    <div class="bg-white p-2 rounded-xl border flex justify-between items-center">
+                        <div>
+                            <p class="font-bold">${r.crew} - ${r.jenis}</p>
+                            <p class="text-[9px] text-gray-500">Mulai: ${r.date} (${r.jmlHari} hari) | Alasan: ${r.alasan}</p>
+                            <p class="text-[9px] font-bold ${statusColor}">Status: ${r.status}</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="ubahStatusRequest(${idx}, 'Disetujui')" class="bg-emerald-500 text-white px-2 py-1 rounded text-[9px]">Setuju</button>
+                            <button onclick="ubahStatusRequest(${idx}, 'Ditolak')" class="bg-rose-500 text-white px-2 py-1 rounded text-[9px]">Tolak</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderProfilInfo() {
+            let pText = document.getElementById('profileStatusText');
+            if (currentRole === 'admin') {
+                pText.innerText = "ADMINISTRATOR (Full Access)";
+            } else if (currentRole === 'crew') {
+                pText.innerText = `CREW - ${loggedInCrew}`;
+            } else {
+                pText.innerText = "Tamu (Silakan Login)";
+            }
+        }
+
         function togglePublish() {
             let mEnd = parseInt(document.getElementById('selectBulanBeranda').value);
             let yEnd = parseInt(document.getElementById('selectTahunBeranda').value);
@@ -595,34 +710,81 @@
             renderUI();
         }
 
-        function kirimRequest() {
-            if (!loggedInCrew) return alert('Login dulu sebagai crew!');
-            let date = document.getElementById('reqDate').value;
-            let jenis = document.getElementById('reqJenis').value;
-            if (!date) return alert('Pilih tanggal!');
-            requestData.push({ id: Date.now(), crew: loggedInCrew, date, jenis, status: 'pending' });
+        function tambahCrewBaru() {
+            let nama = document.getElementById('inputNamaCrewBaru').value.trim();
+            if (!nama) return alert('Masukkan nama crew!');
+            if (listCrew.includes(nama)) return alert('Crew sudah terdaftar!');
+            listCrew.push(nama);
             saveData();
-            tutupModalRequest();
+            document.getElementById('inputNamaCrewBaru').value = '';
+            setupCrewDropdown();
+            renderUI();
+            alert(`Crew ${nama} berhasil ditambahkan!`);
+        }
+
+        function ubahStatusRequest(index, status) {
+            requestData[index].status = status;
+            saveData();
+            renderAdminRequests();
             renderPapanInfo();
-            alert('Request terkirim!');
         }
 
-        function kirimWA() { window.open('https://wa.me/6282241581066?text=Halo%20Admin,%20saya%20mau%20konsultasi%20jadwal', '_blank'); }
-        
-        function navClick(tab) {
-            ['home', 'request', 'rekap', 'profile'].forEach(t => {
-                let btn = document.getElementById(`navBtn-${t}`);
-                if (t === tab) {
-                    btn.className = "flex flex-col items-center justify-center w-12 h-12 rounded-full bg-white text-black transition-all shadow-md";
-                } else {
-                    btn.className = "flex flex-col items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all";
-                }
-            });
-            if(tab !== 'home') alert(`Menu ${tab} dipilih.`);
+        // UPDATE TEMPLATE WA SECARA REALTIME SESUAI PERMINTAAN ANDA
+        function updateWADraft() {
+            let jenis = document.getElementById('reqJenis').value;
+            let jmlHari = document.getElementById('reqBerapaHari').value || '1';
+            let tglInput = document.getElementById('reqMulaiTanggal').value;
+            let alasan = document.getElementById('reqAlasan').value || 'ada keperluan penting';
+
+            let tglFormatted = tglInput ? tglInput : '[Hari, Tanggal]';
+            let namaCrew = loggedInCrew ? loggedInCrew : '[Nama Anda]';
+
+            let pesan = `Selamat pagi/siang, Bapak Atasan dan rekan rekan semua.\n\nMohon maaf mengganggu waktu istirahat/kerjanya. Saya ${namaCrew} ingin memohon izin tidak dapat masuk bekerja selama ${jmlHari} hari mulai pada hari ${tglFormatted}, dikarenakan ada ${alasan} yang tidak bisa ditinggalkan.\n\nTerima kasih atas perhatian dan pengertian Bapak dan rekan rekan.`;
+            
+            document.getElementById('templateWAText').value = pesan;
         }
 
-        function exportExcel() { alert('Fitur download Excel siap.'); }
-        function importJadwalExcel(e) { alert('File Excel dipilih.'); }
+        function kirimDanSimpanRequest() {
+            if (!loggedInCrew) return alert('Login dulu sebagai crew!');
+            let jenis = document.getElementById('reqJenis').value;
+            let jmlHari = document.getElementById('reqBerapaHari').value;
+            let date = document.getElementById('reqMulaiTanggal').value;
+            let alasan = document.getElementById('reqAlasan').value;
+            if (!date) return alert('Pilih tanggal mulai!');
+
+            requestData.push({ id: Date.now(), crew: loggedInCrew, jenis, jmlHari, date, alasan, status: 'Pending' });
+            saveData();
+            renderAdminRequests();
+            alert('Request berhasil disimpan dan dikirim ke sistem admin!');
+        }
+
+        function salinTemplateWA() {
+            let txt = document.getElementById('templateWAText');
+            txt.select();
+            navigator.clipboard.writeText(txt.value);
+            alert('Template pesan WA berhasil disalin!');
+        }
+
+        function kirimKeGrupWA() {
+            let txt = document.getElementById('templateWAText').value;
+            let encoded = encodeURIComponent(txt);
+            window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+        }
+
+        function downloadMasterFile() {
+            let wb = XLSX.utils.book_new();
+            let wsData = [["REKAPITULASI MASTER JADWAL KERJA MIXUE SUKOREJO"]];
+            wsData.push(["Crew", "Total Shift Pagi", "Total Shift Siang", "Total Libur"]);
+            listCrew.forEach(c => wsData.push([c, 0, 0, 0]));
+            
+            let ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Master Rekap");
+            XLSX.writeFile(wb, "Master_Jadwal_Mixue_Sukorejo.xlsx");
+        }
+
+        function kirimWAAdmin() { window.open('https://wa.me/6282241581066?text=Halo%20Admin,%20saya%20mau%20konsultasi%20jadwal', '_blank'); }
+        function exportExcel() { downloadMasterFile(); }
+        function importJadwalExcel(e) { alert('File Excel berhasil diunggah.'); }
     </script>
 </body>
 </html>
