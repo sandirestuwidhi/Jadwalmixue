@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.31 (Exact Period Alignment Fix)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.24</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -329,7 +329,7 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.31</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.24</p>
         </div>
 
     </div>
@@ -503,7 +503,7 @@
             tb.disabled = false;
             if (!sb.value || sb.value === "") {
                 let now = new Date();
-                sb.value = now.getMonth(); // Default ke bulan saat ini (misal: September = 8)
+                sb.value = now.getMonth();
                 tb.value = now.getFullYear();
             }
         }
@@ -538,7 +538,6 @@
             renderUI();
         }
 
-        // KUNCI LABEL PERIODE: Tepat sesuai pilihan bulan (Mulai tgl 26 bulan sebelumnya s.d. tgl 25 bulan pilihan)
         function getPeriodeKey(mEnd, yEnd) {
             let mStart = mEnd - 1;
             let yStart = yEnd;
@@ -586,7 +585,6 @@
             }
         }
 
-        // GENERATOR RENTANG MUTLAK 26 s.d 25 (Tepat 31 Hari / Sampai Tgl 25 di W4)
         function generateWeeksArray(startDateObj, endDateObj) {
             let allDays = [];
             let curr = new Date(startDateObj);
@@ -1061,8 +1059,7 @@
             reader.readAsArrayBuffer(file);
         }
 
-        function kirimWAAdmin() { window.open('https://wa.me/6282241581066?text=Halo%20Admin,%20saya%20mau%20konsultasi%20jadwal', '_blank'); //
-        }
+        function kirimWAAdmin() { window.open('https://wa.me/6282241581066?text=Halo%20Admin,%20saya%20mau%20konsultasi%20jadwal', '_blank'); }
     </script>
 </body>
 </html>
