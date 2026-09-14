@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.0 (Firebase Realtime)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.1 (Firebase Fixed)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -90,7 +90,7 @@
             <h1 class="text-base font-black tracking-wider uppercase relative z-10">JADWAL KERJA MIXUE SUKOREJO</h1>
             <div class="flex items-center justify-center gap-1.5 mt-1.5 relative z-10">
                 <span class="w-2 h-2 rounded-full bg-emerald-300 inline-block animate-pulse"></span>
-                <span class="text-[10px] font-semibold text-red-100">Firebase Realtime Connected</span>
+                <span class="text-[10px] font-semibold text-red-100">Firebase Realtime Connected (v1.8.1)</span>
             </div>
             <button id="btnLogout" onclick="logout()" class="hidden absolute right-3.5 top-4 bg-black/20 hover:bg-black/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold backdrop-blur transition shadow-sm z-10">Keluar</button>
         </div>
@@ -366,7 +366,7 @@
 
     <!-- FOOTER COPYRIGHT -->
     <footer class="text-center text-[10px] text-gray-500 mt-8 border-t border-gray-300/60 pt-3">
-        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.8.0 Firebase
+        © 2026 shift maker - appwebsite by sanrezt.creative- Versi 1.8.1 Firebase
     </footer>
 
     <script>
@@ -426,12 +426,10 @@
             });
         }
 
-        // FITUR AUTO-CLEANUP DENGAN JEDAH TANGGAL 27 (REKAP AMAN)
         function cekDanHapusDataLamaOtomatis() {
             let now = new Date();
             let day = now.getDate();
             
-            // Jika tanggal sudah melewati tanggal 27, bersihkan periode bulan sebelumnya yang sudah lewat jauh
             if (day >= 27) {
                 let m = now.getMonth();
                 let y = now.getFullYear();
@@ -562,7 +560,7 @@
         function setupTahunDropdown() {
             let currentYear = new Date().getFullYear();
             let html = '';
-            for (let y = currentYear - 2; y <= currentYear + 5; y++) {
+            for (let y = currentYear - 1; y <= currentYear + 4; y++) {
                 html += `<option value="${y}">${y}</option>`;
             }
             let sBeranda = document.getElementById('selectTahunBeranda');
