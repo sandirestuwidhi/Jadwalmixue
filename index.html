@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.43 (Auto Schedule on Request Approval)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.48 (Persistent Request History)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -173,12 +173,12 @@
 
                     <!-- MASTER FILE & UPLOAD EXCEL OTOMATIS -->
                     <div class="border-t pt-2 space-y-2">
-                        <label class="font-bold block text-emerald-700 uppercase">📁 Master File & Upload Jadwal Excel:</label>
+                        <label class="font-bold block text-emerald-700 uppercase">📁 Master File & Upload Singkatan Excel:</label>
                         <div class="flex gap-2">
                             <button onclick="downloadMasterFile()" class="flex-1 bg-emerald-600 text-white font-bold py-2">Unduh Format</button>
                             <input type="file" accept=".xlsx, .xls" onchange="uploadMasterFileExcel(event)" class="flex-1 p-1 text-[9px] bg-white">
                         </div>
-                        <p class="text-[9px] text-gray-500 italic">*Format Excel: Kolom 1 = Tanggal (YYYY-MM-DD tepat tgl 26 s.d 25), Kolom berikutnya = Nama Crew.</p>
+                        <p class="text-[9px] text-gray-500 italic">*Format Singkatan: PK=Pagi Kuning, PB=Pagi Biru, SK=Siang Kuning, SB=Siang Biru, MID=Middle, SWC=SWC, PWC=PWC, L=Lembur, LIB=Libur, IZ=Izin.</p>
                     </div>
 
                     <!-- INPUT JADWAL MANUAL PER-CREW SATUAN -->
@@ -304,7 +304,7 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.43</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.48</p>
         </div>
 
     </div>
@@ -379,6 +379,7 @@
         const namaHari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
         const listEmoji = ["🍦", "✨", "🔥", "🚀", "⭐", "🎉", "🍹", "🥳", "🎯", "🍀"];
         let activeWeekIndex = 0;
+        let isInitialLoad = true;
 
         function formatDateLocal(d) {
             let year = d.getFullYear();
@@ -394,16 +395,10 @@
                 if (val) {
                     listCrew = val.crew || [];
                     scheduleData = val.schedule || {};
+                    // RIWAYAT REQUEST TETAP DISIMPAN PENUH TANPA PENGHAPUSAN OTOMATIS 4 HARI
                     requestData = val.requests || [];
                     activeWeeks = val.weeks || {};
                     publishedPeriods = val.published || {};
-
-                    let now = Date.now();
-                    let filteredReqs = requestData.filter(r => (now - (r.timestamp || now)) < (4 * 24 * 60 * 60 * 1000));
-                    if (filteredReqs.length !== requestData.length) {
-                        requestData = filteredReqs;
-                        saveData();
-                    }
                 }
                 renderUI();
             });
@@ -501,22 +496,20 @@
             let sb = document.getElementById('selectBulanBeranda');
             let tb = document.getElementById('selectTahunBeranda');
             
-            if (currentRole !== 'admin') {
+            sb.disabled = false;
+            tb.disabled = false;
+
+            if (isInitialLoad) {
                 let latestPub = getLatestPublishedPeriod();
                 if (latestPub) {
                     sb.value = latestPub.month;
                     tb.value = latestPub.year;
-                    sb.disabled = true;
-                    tb.disabled = true;
-                    return;
+                } else {
+                    let now = new Date();
+                    sb.value = now.getMonth();
+                    tb.value = now.getFullYear();
                 }
-            }
-            sb.disabled = false;
-            tb.disabled = false;
-            if (!sb.value || sb.value === "") {
-                let now = new Date();
-                sb.value = now.getMonth();
-                tb.value = now.getFullYear();
+                isInitialLoad = false;
             }
         }
 
@@ -524,7 +517,7 @@
             for (let y = 2027; y >= 2026; y--) {
                 for (let m = 11; m >= 0; m--) {
                     let pKey = getPeriodeKey(m, y);
-                    if (publishedPeriods[pKey]) {
+                    if (publishedPeriods[pKey] === true) {
                         return { month: m, year: y };
                     }
                 }
@@ -557,7 +550,11 @@
             return `26 ${bulanNama[mStart]} - 25 ${bulanNama[mEnd]} ${yEnd}`;
         }
 
-        function syncPeriode() { renderTabelBeranda(); renderCardHarian(); if(!document.getElementById('page-rekap').classList.contains('hidden')) renderRekapDetail(); }
+        function syncPeriode() { 
+            renderTabelBeranda(); 
+            renderCardHarian(); 
+            if(!document.getElementById('page-rekap').classList.contains('hidden')) renderRekapDetail(); 
+        }
 
         function bukaModalLogin() { document.getElementById('modalLogin').classList.remove('hidden'); document.getElementById('modalLogin').classList.add('flex'); }
         function tutupModalLogin() { document.getElementById('modalLogin').classList.add('hidden'); document.getElementById('modalLogin').classList.remove('flex'); }
@@ -1017,13 +1014,11 @@
             let req = requestData[index];
             req.status = status;
 
-            // JIKA ADMIN MENYETUJUI (Disetujui), OTOMATIS MASUKKAN KE JADWAL UTAMA BERDASARKAN TANGGAL & NAMA CREW
             if (status === 'Disetujui') {
                 let targetDate = req.date;
                 let crewName = req.crew;
-                let jenisReq = req.jenis; // Contoh: "Request Shift Siang Kuning", "Request Libur", "Izin Sakit", dll.
+                let jenisReq = req.jenis; 
 
-                // Tentukan shift mapping otomatis
                 let mappedShift = "";
                 if (jenisReq.includes('Pagi Kuning')) mappedShift = "Pagi Kuning";
                 else if (jenisReq.includes('Pagi Biru')) mappedShift = "Pagi Biru";
@@ -1037,13 +1032,11 @@
                 else if (jenisReq.includes('Sakit') || jenisReq.includes('Izin')) mappedShift = "IZIN";
 
                 if (mappedShift && targetDate && crewName) {
-                    // Cari periode berdasarkan tanggal request (format YYYY-MM-DD)
                     let dParts = targetDate.split('-');
                     let reqYear = parseInt(dParts[0]);
                     let reqMonth = parseInt(dParts[1]) - 1;
                     let reqDay = parseInt(dParts[2]);
 
-                    // Tentukan periode (26 bln sebelumnya s.d 25 bln tsb)
                     let mEnd = reqMonth;
                     let yEnd = reqYear;
                     if (reqDay >= 26) {
@@ -1055,14 +1048,12 @@
                     if (!scheduleData[pKey]) scheduleData[pKey] = {};
                     if (!scheduleData[pKey][targetDate]) scheduleData[pKey][targetDate] = {};
 
-                    // Handle durasi jika lebih dari 1 hari (khusus Izin/Keperluan lainnya jika pakai berapa hari)
                     let jmlHari = parseInt(req.jmlHari || 1);
                     let currDateObj = new Date(reqYear, reqMonth, reqDay);
 
                     for (let i = 0; i < jmlHari; i++) {
                         let dateStr = formatDateLocal(currDateObj);
                         
-                        // Cari ulang periode untuk setiap tanggal increment
                         let cYear = currDateObj.getFullYear();
                         let cMonth = currDateObj.getMonth();
                         let cDay = currDateObj.getDate();
@@ -1132,12 +1123,10 @@
                 renderRiwayatRequestSaya();
                 renderAdminRequestsPage();
 
-                // Munculkan popup WA KHUSUS untuk Izin Sakit atau Keperluan Lainnya
                 lastGeneratedWAPesan = `Selamat pagi/siang, Bapak Atasan dan rekan rekan semua.\n\nMohon izin menyampaikan request terkait jadwal kerja:\n\nNama: ${loggedInCrew}\nJenis Request: ${jenis}\nMulai Tanggal: ${date} (${jmlHari} hari)\nKeterangan: ${alasan}\n\nTerima kasih atas perhatian dan pengertian Bapak dan rekan rekan.`;
                 document.getElementById('popupWAText').value = lastGeneratedWAPesan;
                 bukaModalWA();
             } else {
-                // Untuk request shift / libur lainnya langsung catat ke sistem tanpa popup WA
                 requestData.push({ id: Date.now(), timestamp: Date.now(), crew: loggedInCrew, jenis, jmlHari, date, alasan, status: 'Pending' });
                 saveData();
                 renderRiwayatRequestSaya();
@@ -1187,14 +1176,33 @@
             
             while(curr <= end) {
                 let row = [formatDateLocal(curr)];
-                defaultCrew.forEach(() => row.push("Pagi Kuning"));
+                defaultCrew.forEach(() => row.push("PK"));
                 wsData.push(row);
                 curr.setDate(curr.getDate() + 1);
             }
             
             let ws = XLSX.utils.aoa_to_sheet(wsData);
-            XLSX.utils.book_append_sheet(wb, ws, "Format Jadwal 26-25");
-            XLSX.writeFile(wb, "Format_Jadwal_Mixue_26_sampa_25.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Format Singkatan 26-25");
+            XLSX.writeFile(wb, "Format_Jadwal_Singkatan_Mixue.xlsx");
+        }
+
+        function parseShiftCode(code) {
+            if (!code) return "";
+            let c = String(code).trim().toUpperCase();
+            switch (c) {
+                case 'PK': return "Pagi Kuning";
+                case 'PB': return "Pagi Biru";
+                case 'SK': return "Siang Kuning";
+                case 'SB': return "Siang Biru";
+                case 'MID': return "Middle Ungu";
+                case 'SWC': return "SWC Oren";
+                case 'PWC': return "PWC Pink";
+                case 'L': 
+                case 'LH': return "Lemburan Hijau";
+                case 'LIB': return "Libur Hitam";
+                case 'IZ': return "IZIN";
+                default: return code;
+            }
         }
 
         function uploadMasterFileExcel(e) {
@@ -1236,8 +1244,9 @@
                         
                         for(let j = 1; j < headers.length; j++) {
                             let cName = headers[j];
-                            let shiftVal = row[j];
-                            if(cName && shiftVal) {
+                            let rawShift = row[j];
+                            if(cName && rawShift !== undefined) {
+                                let shiftVal = parseShiftCode(rawShift);
                                 scheduleData[pKey][tgl][cName] = shiftVal;
                                 if(!listCrew.includes(cName)) listCrew.push(cName);
                             }
@@ -1247,7 +1256,7 @@
                     saveData();
                     renderTabelBeranda();
                     renderCardHarian();
-                    alert('Jadwal Excel berhasil diunggah persis mulai tgl 26 s.d 25 tanpa meleset!');
+                    alert('Jadwal Excel dengan singkatan berhasil diunggah dengan sukses!');
                 } catch(err) {
                     console.error(err);
                     alert('Gagal membaca file Excel. Pastikan format kolom sesuai.');
