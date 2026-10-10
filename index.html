@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.48 (Persistent Request History)</title>
+    <title>JADWAL KERJA MIXUE SUKOREJO v1.8.52 (Formspree Integration)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#dc2626">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -304,7 +304,7 @@
 
         <!-- WATERMARK -->
         <div class="text-center pt-2 pb-2">
-            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.48</p>
+            <p class="text-[9px] font-bold text-gray-400 tracking-wider">© 2026. SANREZT.CREATIVE. APP VERSI 1.8.52</p>
         </div>
 
     </div>
@@ -325,19 +325,15 @@
         </button>
     </div>
 
-    <!-- MODAL POPUP WA KHUSUS IZIN SAKIT / KEPERLUAN LAINNYA -->
-    <div id="modalPopupWA" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-5 space-y-4 shadow-2xl">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-black text-xs text-emerald-600 uppercase">🚀 Kirim Request ke Grup WA</h3>
-                <button onclick="tutupModalWA()" class="text-gray-400 font-bold">✕</button>
-            </div>
-            <p class="text-[9px] text-gray-500">Pesan otomatis telah disiapkan oleh sistem:</p>
-            <textarea id="popupWAText" readonly class="w-full h-36 p-2 text-[10px] bg-gray-50 font-mono"></textarea>
-            <div class="flex gap-2">
-                <button onclick="salinTemplateWAPopup()" class="flex-1 bg-gray-800 text-white font-black py-2.5 text-[10px]">Salin Pesan</button>
-                <button onclick="kirimKeGrupWAPopup()" class="flex-1 bg-emerald-600 text-white font-black py-2.5 text-[10px]">Kirim WA</button>
-            </div>
+    <!-- MODAL POPUP LIMIT PERINGATAN -->
+    <div id="modalLimitPeringatan" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 text-center shadow-2xl border-4 border-rose-500">
+            <div class="text-4xl">⚠️</div>
+            <h3 class="font-black text-sm text-rose-600 uppercase tracking-wide">PERINGATAN!</h3>
+            <p id="limitPesanText" class="text-[11px] font-bold text-gray-700 leading-relaxed">
+                Rekues/Izin melampaui batas, Tindakan tidak dapat dilanjutkan.
+            </p>
+            <button onclick="tutupModalLimit()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-2.5 rounded-xl text-xs shadow-md">Mengerti</button>
         </div>
     </div>
 
@@ -373,6 +369,9 @@
         let activeWeeks = {};
         let publishedPeriods = {};
 
+        // Endpoint Formspree kamu
+        const FORMSPREE_URL = "https://formspree.io/f/xvkoqady";
+
         let currentRole = localStorage.getItem('sandyrzt_role') || null;
         let loggedInCrew = localStorage.getItem('sandyrzt_logged_crew') || null;
         const bulanNama = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -395,7 +394,6 @@
                 if (val) {
                     listCrew = val.crew || [];
                     scheduleData = val.schedule || {};
-                    // RIWAYAT REQUEST TETAP DISIMPAN PENUH TANPA PENGHAPUSAN OTOMATIS 4 HARI
                     requestData = val.requests || [];
                     activeWeeks = val.weeks || {};
                     publishedPeriods = val.published || {};
@@ -556,7 +554,7 @@
             if(!document.getElementById('page-rekap').classList.contains('hidden')) renderRekapDetail(); 
         }
 
-        function bukaModalLogin() { document.getElementById('modalLogin').classList.remove('hidden'); document.getElementById('modalLogin').classList.add('flex'); }
+        function bukaModalLogin() { document.getElementById('modalLogin').classList.add('flex'); document.getElementById('modalLogin').classList.remove('hidden'); }
         function tutupModalLogin() { document.getElementById('modalLogin').classList.add('hidden'); document.getElementById('modalLogin').classList.remove('flex'); }
 
         function prosesLoginAdmin() {
@@ -1103,13 +1101,65 @@
             }
         }
 
-        let lastGeneratedWAPesan = "";
+        function getIsoWeekNumber(d) {
+            let target = new Date(d.valueOf());
+            let dayNr = (d.getDay() + 6) % 7;
+            target.setDate(target.getDate() - dayNr + 3);
+            let firstThursday = new Date(target.getFullYear(), 0, 4);
+            let firstDayNr = (firstThursday.getDay() + 6) % 7;
+            firstThursday.setDate(firstThursday.getDate() - firstDayNr + 3);
+            let millisPerWeek = 7 * 24 * 60 * 60 * 1000;
+            return 1 + Math.round((target.getTime() - firstThursday.getTime()) / millisPerWeek);
+        }
+
+        // --- FUNGSI KIRIM KE FORMSPREE SECARA OTOMATIS ---
+        function kirimEmailFormspree(crewName, jenisReq, tgl, jml, ket) {
+            let formData = new FormData();
+            formData.append("Nama Crew", crewName);
+            formData.append("Jenis Request", jenisReq);
+            formData.append("Mulai Tanggal", tgl);
+            formData.append("Durasi (Hari)", jml);
+            formData.append("Keterangan", ket);
+
+            fetch(FORMSPREE_URL, {
+                method: "POST",
+                body: formData,
+                headers: { 'Accept': 'json' }
+            }).then(response => {
+                if (response.ok) {
+                    alert('Request berhasil dikirim ke sistem & email notifikasi terkirim ke admin!');
+                } else {
+                    alert('Request tersimpan, namun gagal mengirim email notifikasi.');
+                }
+            }).catch(error => {
+                console.error("Formspree Error:", error);
+                alert('Request tersimpan di sistem.');
+            });
+        }
 
         function kirimDanSimpanRequest() {
             if (!loggedInCrew) return alert('Login dulu sebagai crew!');
             let jenis = document.getElementById('reqJenis').value;
-            let date = document.getElementById('reqMulaiTanggal').value;
-            if (!date) return alert('Pilih tanggal terlebih dahulu!');
+            let dateStr = document.getElementById('reqMulaiTanggal').value;
+            if (!dateStr) return alert('Pilih tanggal terlebih dahulu!');
+
+            let targetDateObj = new Date(dateStr);
+            let targetWeek = getIsoWeekNumber(targetDateObj);
+            let targetYear = targetDateObj.getFullYear();
+
+            let countThisWeek = requestData.filter(r => {
+                if (r.crew !== loggedInCrew) return false;
+                let rDateObj = new Date(r.date);
+                return getIsoWeekNumber(rDateObj) === targetWeek && rDateObj.getFullYear() === targetYear;
+            }).length;
+
+            const MAX_LIMIT_MINGGUAN = 3; 
+            if (countThisWeek >= MAX_LIMIT_MINGGUAN) {
+                document.getElementById('limitPesanText').innerText = `PERINGATAN!\nRekues/Izin melampaui batas (${countThisWeek}/${MAX_LIMIT_MINGGUAN} minggu ini). Tindakan tidak dapat dilanjutkan.`;
+                document.getElementById('modalLimitPeringatan').classList.add('flex');
+                document.getElementById('modalLimitPeringatan').classList.remove('hidden');
+                return; 
+            }
 
             let jmlHari = "1";
             let alasan = "-";
@@ -1117,45 +1167,20 @@
             if (jenis === 'Izin Sakit' || jenis === 'Keperluan Lainnya') {
                 jmlHari = document.getElementById('reqBerapaHari').value || "1";
                 alasan = document.getElementById('reqAlasan').value || "keperluan jadwal";
-
-                requestData.push({ id: Date.now(), timestamp: Date.now(), crew: loggedInCrew, jenis, jmlHari, date, alasan, status: 'Pending' });
-                saveData();
-                renderRiwayatRequestSaya();
-                renderAdminRequestsPage();
-
-                lastGeneratedWAPesan = `Selamat pagi/siang, Bapak Atasan dan rekan rekan semua.\n\nMohon izin menyampaikan request terkait jadwal kerja:\n\nNama: ${loggedInCrew}\nJenis Request: ${jenis}\nMulai Tanggal: ${date} (${jmlHari} hari)\nKeterangan: ${alasan}\n\nTerima kasih atas perhatian dan pengertian Bapak dan rekan rekan.`;
-                document.getElementById('popupWAText').value = lastGeneratedWAPesan;
-                bukaModalWA();
-            } else {
-                requestData.push({ id: Date.now(), timestamp: Date.now(), crew: loggedInCrew, jenis, jmlHari, date, alasan, status: 'Pending' });
-                saveData();
-                renderRiwayatRequestSaya();
-                renderAdminRequestsPage();
-                alert('Request berhasil disimpan ke sistem!');
             }
+
+            requestData.push({ id: Date.now(), timestamp: Date.now(), crew: loggedInCrew, jenis, jmlHari, date: dateStr, alasan, status: 'Pending' });
+            saveData();
+            renderRiwayatRequestSaya();
+            renderAdminRequestsPage();
+
+            // Panggil API Formspree agar email langsung masuk ke resnows5@gmail.com
+            kirimEmailFormspree(loggedInCrew, jenis, dateStr, jmlHari, alasan);
         }
 
-        function bukaModalWA() {
-            document.getElementById('modalPopupWA').classList.remove('hidden');
-            document.getElementById('modalPopupWA').classList.add('flex');
-        }
-
-        function tutupModalWA() {
-            document.getElementById('modalPopupWA').classList.add('hidden');
-            document.getElementById('modalPopupWA').classList.remove('flex');
-            alert('Request berhasil disimpan ke sistem!');
-        }
-
-        function salinTemplateWAPopup() {
-            let txt = document.getElementById('popupWAText');
-            txt.select();
-            navigator.clipboard.writeText(txt.value);
-            alert('Template pesan WA berhasil disalin!');
-        }
-
-        function kirimKeGrupWAPopup() {
-            let encoded = encodeURIComponent(lastGeneratedWAPesan);
-            window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+        function tutupModalLimit() {
+            document.getElementById('modalLimitPeringatan').classList.add('hidden');
+            document.getElementById('modalLimitPeringatan').classList.remove('flex');
         }
 
         function downloadMasterFile() {
